@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to Pro — ConvertMind</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c5cfc'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='white'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #060609; --surface: #101018; --surface2: #181824;
+  --border: rgba(255,255,255,0.06); --border2: rgba(255,255,255,0.13);
+  --accent: #7c5cfc; --accent2: #c084fc;
+  --text: #f2f0ff; --muted: #918dac; --green: #22d3a5;
+  --mono: 'DM Mono', monospace; --sans: 'Syne', sans-serif;
+}
+body {
+  background: var(--bg); color: var(--text); font-family: var(--sans);
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background-image: radial-gradient(ellipse 70% 45% at 50% -10%, rgba(124,92,252,0.12) 0%, transparent 60%);
+}
+.card {
+  max-width: 520px; width: 100%;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(160deg, rgba(124,92,252,0.55), rgba(255,255,255,0.07)) border-box;
+  border: 1px solid transparent; border-radius: 22px;
+  padding: 44px 40px;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.55);
+}
+.logo { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 30px; }
+.logo span { color: var(--accent); }
+.check {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: rgba(34,211,165,0.12); border: 1px solid rgba(34,211,165,0.4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: var(--green); margin-bottom: 22px;
+}
+h1 { font-size: 27px; font-weight: 800; letter-spacing: -1px; line-height: 1.15; margin-bottom: 10px; }
+.sub { color: var(--muted); font-size: 14.5px; line-height: 1.65; margin-bottom: 30px; }
+.steps { list-style: none; margin-bottom: 30px; }
+.steps li {
+  display: flex; gap: 14px; align-items: flex-start;
+  padding: 13px 0; border-top: 1px solid var(--border);
+  font-size: 14px; line-height: 1.6; color: var(--muted);
+}
+.steps li:last-child { border-bottom: 1px solid var(--border); }
+.steps b { color: var(--text); font-weight: 700; }
+.steps .n {
+  font-family: var(--mono); font-size: 12px; color: var(--accent2);
+  border: 1px solid rgba(124,92,252,0.4); border-radius: 50%;
+  width: 24px; height: 24px; min-width: 24px;
+  display: flex; align-items: center; justify-content: center; margin-top: 1px;
+}
+.cta {
+  display: block; width: 100%; text-align: center;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; text-decoration: none; border: none;
+  padding: 15px; border-radius: 12px;
+  font-family: var(--sans); font-weight: 700; font-size: 15px;
+  cursor: pointer; transition: box-shadow .25s;
+}
+.cta:hover { box-shadow: 0 8px 32px rgba(124,92,252,0.5); }
+.fine {
+  margin-top: 18px; text-align: center;
+  font-family: var(--mono); font-size: 11.5px; color: var(--muted); line-height: 1.8;
+}
+.fine a { color: var(--accent2); text-decoration: none; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Convert<span>Mind</span></div>
+    <div class="check">✓</div>
+    <h1>Payment received.<br>You're a Pro.</h1>
+    <p class="sub">Here's exactly what happens next — you'll be running unlimited scans in a few minutes.</p>
+    <ul class="steps">
+      <li><span class="n">1</span><span><b>Your Pro key is on its way by email</b> — it usually arrives within minutes. Check spam if you don't see it.</span></li>
+      <li><span class="n">2</span><span>Back on ConvertMind, click <b>"Have a key?"</b> at the top right of the page.</span></li>
+      <li><span class="n">3</span><span><b>Paste your key</b> — every scan from then on is a full Pro report: all psychology insights, the complete fix plan, unlimited scans.</span></li>
+    </ul>
+    <a class="cta" href="/">Go to ConvertMind →</a>
+    <p class="fine">No key after 15 minutes? Email <a href="mailto:hello@convertmind.ai">hello@convertmind.ai</a> with your receipt<br>and a human will sort it out fast.</p>
+  </div>
+</body>
+</html>

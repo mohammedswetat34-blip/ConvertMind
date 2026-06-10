@@ -1,0 +1,2459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConvertMind — AI Website Audit & Optimization</title>
+<meta name="description" content="AI-powered website analysis that reveals your weak points and builds a profit-maximizing improvement plan using consumer psychology.">
+<meta property="og:title" content="ConvertMind — AI Website Audit">
+<meta property="og:description" content="Scan your website. Discover what's killing conversions. Get a psychology-backed improvement plan.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://convertmind.ai">
+<meta property="og:image" content="https://convertmind.ai/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ConvertMind — AI Website Audit">
+<meta name="twitter:description" content="Scan your website. Discover what's killing conversions. Get a psychology-backed improvement plan.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%237c5cfc'/><text x='50%25' y='55%25' text-anchor='middle' dominant-baseline='middle' font-size='18' fill='white'>⚡</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #060609;
+  --bg2: #0a0a10;
+  --surface: #101018;
+  --surface2: #181824;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.13);
+  --accent: #7c5cfc;
+  --accent2: #c084fc;
+  --text: #f2f0ff;
+  --muted: #918dac;
+  --green: #22d3a5;
+  --money: #4ade80;
+  --red: #f87171;
+  --amber: #fbbf24;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Syne', sans-serif;
+  --serif: 'Instrument Serif', serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+::selection { background: rgba(124,92,252,0.4); }
+
+/* ── ATMOSPHERE ── */
+.bg-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -10%, rgba(124,92,252,0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 90%, rgba(192,132,252,0.04) 0%, transparent 60%);
+}
+.bg-grain {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: 0.35;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0.035 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── LAYOUT ── */
+.container { max-width: 1140px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+/* mono kicker labels */
+.kicker {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent2);
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 22px;
+}
+.kicker::before { content:''; width: 28px; height: 1px; background: var(--accent); }
+
+.serif-em { font-family: var(--serif); font-style: italic; font-weight: 400; letter-spacing: 0; }
+
+/* ── REVEAL SYSTEM ── */
+.rv { opacity: 0; transform: translateY(18px); filter: blur(3px); transition: opacity 1s cubic-bezier(.16,.7,.2,1), transform 1s cubic-bezier(.16,.7,.2,1), filter 1s ease; }
+.rv.in { opacity: 1; transform: none; filter: none; }
+.rv-d1 { transition-delay: .12s; } .rv-d2 { transition-delay: .24s; } .rv-d3 { transition-delay: .36s; }
+
+/* ── NAV ── */
+nav {
+  border-bottom: 1px solid transparent;
+  padding: 20px 0;
+  position: sticky; top: 0;
+  background: transparent;
+  z-index: 100;
+  transition: padding .35s ease, background .35s ease, border-color .35s ease, backdrop-filter .35s ease;
+}
+nav.scrolled {
+  padding: 12px 0;
+  background: rgba(6,6,9,0.78);
+  backdrop-filter: blur(16px) saturate(1.4);
+  border-bottom-color: var(--border);
+}
+.nav-inner { display: flex; align-items: center; justify-content: space-between; }
+.logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+.logo span { color: var(--accent); }
+.nav-cta {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 9px 20px;
+  border-radius: 9px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: box-shadow .25s, transform .15s;
+  box-shadow: 0 0 0 rgba(124,92,252,0);
+}
+.nav-cta:hover { box-shadow: 0 6px 28px rgba(124,92,252,0.5); transform: translateY(-1px); }
+
+/* ── HERO ── */
+.hero {
+  padding: 96px 0 40px;
+  text-align: center;
+  position: relative;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(124,92,252,0.08);
+  border: 1px solid rgba(124,92,252,0.22);
+  border-radius: 100px;
+  padding: 6px 16px;
+  font-family: var(--mono);
+  font-size: 12px; letter-spacing: 1px;
+  color: var(--accent2);
+  margin-bottom: 38px;
+}
+.hero-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--money); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.35} }
+
+h1 {
+  font-size: clamp(42px, 7.2vw, 88px);
+  font-weight: 800;
+  letter-spacing: -3px;
+  line-height: 0.98;
+  margin-bottom: 26px;
+}
+h1 .h1-leak {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  letter-spacing: -1px;
+  background: linear-gradient(120deg, var(--red) 10%, var(--amber) 90%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+h1 .h1-fix {
+  font-family: var(--serif); font-style: italic; font-weight: 400;
+  letter-spacing: -1px;
+  color: var(--accent2);
+}
+
+.hero-sub {
+  font-size: 18px;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto 46px;
+  line-height: 1.65;
+}
+.hero-sub strong { color: var(--text); font-weight: 600; }
+
+/* ── SCAN CONSOLE ── */
+.scan-box {
+  max-width: 660px;
+  margin: 0 auto;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(120deg, rgba(124,92,252,0.65), rgba(192,132,252,0.18)) border-box;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  padding: 8px 8px 8px 22px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 32px 90px rgba(124,92,252,0.13);
+  position: relative;
+}
+.scan-box input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  padding: 12px 0;
+  min-width: 0;
+}
+.scan-box input::placeholder { color: var(--muted); }
+#scan-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 12px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: box-shadow .25s, transform .15s, opacity .2s;
+  white-space: nowrap;
+}
+#scan-btn:hover { box-shadow: 0 8px 32px rgba(124,92,252,0.55); transform: translateY(-1px); }
+#scan-btn:active { transform: translateY(0); }
+#scan-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.scan-note { margin-top: 14px; font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 0.3px; }
+.scan-note em { color: var(--money); font-style: normal; }
+
+/* ── FUNNEL CANVAS ── */
+.funnel-wrap {
+  max-width: 760px;
+  margin: 30px auto -10px;
+  position: relative;
+  height: 320px;
+}
+#funnel-canvas { width: 100%; height: 100%; display: block; }
+.funnel-labels {
+  position: absolute; inset: 0; pointer-events: none;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase;
+}
+.funnel-label { position: absolute; color: var(--muted); opacity: 0.7; }
+.funnel-label.visitors { top: 4px; left: 50%; transform: translateX(-50%); }
+.funnel-label.conv { bottom: 2px; left: 50%; transform: translateX(-50%); color: var(--money); }
+.funnel-caption {
+  text-align: center;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: rgba(248,113,113,0.65);
+  letter-spacing: 0.5px;
+  margin: 26px 0 10px;
+}
+
+/* ── MARQUEE ── */
+.marquee {
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 16px 0; overflow: hidden; white-space: nowrap;
+  position: relative; z-index: 1; background: rgba(10,10,16,0.5);
+}
+.marquee-track { display: inline-block; animation: marquee 65s linear infinite; }
+.marquee span {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  color: rgba(145,141,172,0.55); margin: 0 38px;
+}
+.marquee span b { color: rgba(192,132,252,0.65); font-weight: 500; }
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── LEAK JOURNEY ── */
+.leak-section { padding: 150px 0 120px; position: relative; }
+.leak-head { text-align: center; max-width: 640px; margin: 0 auto 110px; }
+.leak-head h2 { font-size: clamp(30px, 4.6vw, 52px); font-weight: 800; letter-spacing: -2px; line-height: 1.05; margin-bottom: 18px; }
+.leak-head p { color: var(--muted); font-size: 17px; line-height: 1.65; }
+
+.leak-track { position: relative; max-width: 860px; margin: 0 auto; }
+/* the drip line */
+.leak-line {
+  position: absolute; left: 50%; top: 0; bottom: 0; width: 2px; transform: translateX(-50%);
+  background: rgba(255,255,255,0.07);
+  border-radius: 2px;
+}
+.leak-line-fill {
+  position: absolute; left: 0; top: 0; width: 100%; height: 0%;
+  background: linear-gradient(180deg, var(--accent), var(--red) 70%, var(--money));
+  border-radius: 2px;
+  box-shadow: 0 0 14px rgba(124,92,252,0.45);
+  transition: height .25s ease-out;
+}
+
+.leak-stage {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 64px;
+  align-items: center;
+  margin-bottom: 110px;
+  position: relative;
+}
+.leak-stage:last-child { margin-bottom: 0; }
+.leak-stage .stage-num {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--bg); border: 2px solid rgba(255,255,255,0.12);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 14px; color: var(--muted);
+  z-index: 2; transition: border-color .5s, color .5s, box-shadow .5s;
+}
+.leak-stage.in .stage-num { border-color: var(--accent); color: var(--text); box-shadow: 0 0 24px rgba(124,92,252,0.5); }
+.leak-stage:nth-child(even) .stage-copy { order: 2; }
+.leak-stage:nth-child(even) .stage-viz { order: 1; }
+
+.stage-copy .kicker { margin-bottom: 14px; }
+.stage-copy h3 { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin-bottom: 12px; line-height: 1.15; }
+.stage-copy h3 .serif-em { color: var(--accent2); }
+.stage-copy p { color: var(--muted); font-size: 15.5px; line-height: 1.7; }
+.stage-stat {
+  margin-top: 18px; font-family: var(--mono); font-size: 13px; color: var(--red);
+  border-left: 2px solid var(--red); padding-left: 14px;
+}
+.stage-stat b { font-size: 22px; display: block; font-weight: 500; }
+
+.stage-viz {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 26px;
+  min-height: 230px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.stage-viz::before {
+  content:''; position:absolute; inset:0;
+  background: radial-gradient(ellipse 90% 80% at 50% 0%, rgba(124,92,252,0.07), transparent 65%);
+}
+.stage-viz svg { width: 100%; max-width: 330px; height: auto; position: relative; }
+
+/* svg anim primitives */
+.leak-stage .draw { stroke-dasharray: 400; stroke-dashoffset: 400; transition: stroke-dashoffset 1.6s ease .3s; }
+.leak-stage.in .draw { stroke-dashoffset: 0; }
+.leak-stage .fade-el { opacity: 0; transition: opacity .9s ease .8s; }
+.leak-stage.in .fade-el { opacity: 1; }
+@keyframes drip { 0% { transform: translateY(0); opacity: .9; } 100% { transform: translateY(26px); opacity: 0; } }
+.leak-stage.in .drip { animation: drip 2.2s ease-in infinite; }
+
+/* ── SAMPLE REPORT DEMO ── */
+.demo-section { padding: 130px 0; border-top: 1px solid var(--border); position: relative; }
+.demo-head { text-align: center; max-width: 620px; margin: 0 auto 64px; }
+.demo-head h2 { font-size: clamp(30px, 4.6vw, 52px); font-weight: 800; letter-spacing: -2px; margin-bottom: 16px; line-height: 1.05; }
+.demo-head p { color: var(--muted); font-size: 17px; line-height: 1.65; }
+
+.demo-report {
+  max-width: 880px; margin: 0 auto;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(160deg, rgba(124,92,252,0.5), rgba(255,255,255,0.06) 50%, rgba(124,92,252,0.18)) border-box;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  padding: 34px 38px;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.55);
+  position: relative;
+}
+.demo-chrome { display: flex; align-items: center; gap: 7px; margin-bottom: 26px; }
+.demo-chrome i { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); display: block; }
+.demo-chrome .demo-tag {
+  margin-left: auto; font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--amber);
+  border: 1px dashed rgba(251,191,36,0.4); border-radius: 100px; padding: 3px 12px;
+}
+.demo-url { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+.demo-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 24px; }
+
+.demo-dials { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 14px; margin-bottom: 28px; }
+.demo-dial { text-align: center; }
+.demo-dial svg { width: 86px; height: 86px; }
+.demo-dial .dial-track { stroke: rgba(255,255,255,0.08); }
+.demo-dial .dial-val { stroke-linecap: round; stroke-dasharray: 219.9; stroke-dashoffset: 219.9; transition: stroke-dashoffset 1.4s cubic-bezier(.16,.7,.2,1); }
+.demo-dial:nth-child(1) .dial-val { transition-delay: .05s; }
+.demo-dial:nth-child(2) .dial-val { transition-delay: .15s; }
+.demo-dial:nth-child(3) .dial-val { transition-delay: .25s; }
+.demo-dial:nth-child(4) .dial-val { transition-delay: .35s; }
+.demo-dial:nth-child(5) .dial-val { transition-delay: .45s; }
+.demo-dial:nth-child(6) .dial-val { transition-delay: .55s; }
+.demo-dial .dial-num { font-family: var(--mono); font-size: 19px; fill: var(--text); }
+.demo-dial .dial-label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-top: 8px; display: block; }
+
+.demo-issue {
+  background: rgba(248,113,113,0.06); border: 1px solid rgba(248,113,113,0.18);
+  border-left: 3px solid var(--red);
+  border-radius: 12px; padding: 16px 20px; margin-bottom: 14px;
+  display: flex; gap: 13px; align-items: flex-start;
+}
+.demo-issue .di-title { font-weight: 700; font-size: 14.5px; margin-bottom: 4px; }
+.demo-issue .di-desc { font-size: 13.5px; color: var(--muted); line-height: 1.55; }
+
+.demo-locked {
+  border: 1px dashed var(--border2); border-radius: 12px; padding: 16px 20px;
+  position: relative; overflow: hidden;
+}
+.demo-locked .dl-principle { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--accent2); margin-bottom: 8px; }
+.demo-locked .dl-blur {
+  font-size: 13.5px; color: var(--muted); line-height: 1.55;
+  filter: blur(5px); user-select: none; pointer-events: none;
+}
+.demo-locked .dl-cta {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 12px; letter-spacing: 1px; color: var(--text);
+  background: linear-gradient(180deg, transparent, rgba(6,6,9,0.55));
+}
+
+/* ── HOW IT WORKS ── */
+.how-section { padding: 130px 0; border-top: 1px solid var(--border); }
+.how-section h2 { text-align: center; font-size: clamp(30px, 4.6vw, 52px); font-weight: 800; letter-spacing: -2px; margin-bottom: 14px; line-height: 1.05; }
+.how-sub { text-align: center; color: var(--muted); margin-bottom: 70px; font-size: 17px; }
+.steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0; position: relative; }
+.step-card {
+  padding: 8px 28px 0;
+  position: relative;
+  border-left: 1px solid var(--border);
+}
+.step-card:first-child { border-left: none; }
+.step-num {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px; color: var(--accent2);
+  margin-bottom: 18px; display: block;
+}
+.step-title { font-size: 18px; font-weight: 800; margin-bottom: 10px; letter-spacing: -0.3px; }
+.step-desc { font-size: 14px; color: var(--muted); line-height: 1.65; }
+
+/* ── TRUST BAND ── */
+.trust-section { padding: 130px 0; border-top: 1px solid var(--border); }
+.trust-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 18px; }
+.trust-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 26px;
+}
+.trust-card .tc-icon {
+  font-family: var(--mono); font-size: 12px; letter-spacing: 2px;
+  color: var(--accent2); margin-bottom: 16px; display: block;
+}
+.trust-card .tc-title { font-weight: 700; font-size: 15px; margin-bottom: 7px; }
+.trust-card .tc-desc { font-size: 13.5px; color: var(--muted); line-height: 1.6; }
+
+/* ── PRICING ── */
+.pricing-section { padding: 130px 0; border-top: 1px solid var(--border); }
+.pricing-section h2 { text-align: center; font-size: clamp(30px, 4.6vw, 52px); font-weight: 800; letter-spacing: -2px; margin-bottom: 14px; line-height: 1.05; }
+.pricing-sub { text-align: center; color: var(--muted); margin-bottom: 64px; font-size: 17px; }
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 22px; max-width: 960px; margin: 0 auto; align-items: start; }
+.pricing-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 34px 30px;
+  position: relative;
+  transition: transform .3s ease, border-color .3s ease;
+}
+.pricing-card:hover { transform: translateY(-4px); border-color: var(--border2); }
+.pricing-card.featured {
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(160deg, var(--accent), rgba(192,132,252,0.4)) border-box;
+  border: 1px solid transparent;
+  box-shadow: 0 40px 110px rgba(124,92,252,0.16);
+  transform: scale(1.04);
+}
+.pricing-card.featured:hover { transform: scale(1.04) translateY(-4px); }
+.pricing-badge {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  background: var(--accent);
+  color: white;
+  font-family: var(--mono);
+  font-size: 11px; font-weight: 500;
+  padding: 4px 14px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+.pricing-name { font-family: var(--mono); font-size: 13px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+.pricing-price { font-size: 44px; font-weight: 800; letter-spacing: -2px; margin-bottom: 4px; }
+.pricing-price span { font-size: 15px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.pricing-was { display: block; font-family: var(--mono); font-size: 14px; font-weight: 400; color: var(--muted); text-decoration: line-through; margin-bottom: 2px; }
+.pricing-desc { font-size: 13.5px; color: var(--muted); margin-bottom: 26px; }
+.pricing-features { list-style: none; margin-bottom: 30px; }
+.pricing-features li {
+  font-size: 14px; padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 9px;
+}
+.pricing-features li::before { content: "✓"; color: var(--money); font-weight: 700; font-size: 13px; }
+.pricing-cta {
+  width: 100%;
+  padding: 14px;
+  border-radius: 11px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: box-shadow .25s, transform .15s, opacity .2s;
+}
+.pricing-cta.primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+}
+.pricing-cta.primary:hover { box-shadow: 0 8px 32px rgba(124,92,252,0.5); transform: translateY(-1px); }
+.pricing-cta.secondary {
+  background: none;
+  border: 1px solid var(--border2);
+  color: var(--text);
+}
+.pricing-cta.secondary:hover { border-color: var(--accent); }
+
+/* ── FINAL CTA BAND ── */
+.final-cta {
+  margin: 0 0 0;
+  padding: 130px 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.final-cta::before {
+  content:''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 70% at 50% 100%, rgba(124,92,252,0.16), transparent 65%);
+  pointer-events: none;
+}
+.final-cta h2 { font-size: clamp(32px, 5.4vw, 60px); font-weight: 800; letter-spacing: -2.5px; line-height: 1.02; margin-bottom: 18px; }
+.final-cta p { color: var(--muted); font-size: 16px; margin-bottom: 36px; }
+.final-cta-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; border: none;
+  padding: 17px 44px; border-radius: 13px;
+  font-family: var(--sans); font-weight: 700; font-size: 17px;
+  cursor: pointer;
+  transition: box-shadow .25s, transform .15s;
+  box-shadow: 0 12px 48px rgba(124,92,252,0.35);
+}
+.final-cta-btn:hover { box-shadow: 0 16px 64px rgba(124,92,252,0.55); transform: translateY(-2px); }
+
+/* ── VIEWS ── */
+#home-view { }
+#analyzer-view { display: none; padding: 48px 0 80px; min-height: 70vh; }
+
+/* ── LOADING (terminal scan) ── */
+#loading-state {
+  display: none;
+  max-width: 560px;
+  margin: 40px auto 0;
+}
+.scan-terminal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 30px 90px rgba(0,0,0,0.5);
+}
+.scan-terminal-bar {
+  display: flex; align-items: center; gap: 7px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg2);
+}
+.scan-terminal-bar i { width: 10px; height: 10px; border-radius: 50%; background: var(--surface2); display: block; }
+.scan-terminal-bar .st-title { margin-left: 8px; font-family: var(--mono); font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+.scan-terminal-body { padding: 28px 26px 30px; position: relative; }
+.scan-terminal-body::after {
+  content:''; position: absolute; left: 0; right: 0; height: 2px; top: 0;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: scanline 2.4s ease-in-out infinite;
+  opacity: .7;
+}
+@keyframes scanline { 0%,100% { top: 8%; } 50% { top: 92%; } }
+.spinner {
+  width: 42px; height: 42px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 22px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-headline { text-align: center; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+.loading-sub { text-align: center; font-family: var(--mono); font-size: 12.5px; color: var(--muted); margin-bottom: 22px; }
+.loading-steps { list-style: none; }
+.loading-steps li {
+  font-family: var(--mono);
+  font-size: 13.5px; color: var(--muted);
+  padding: 7px 0;
+  transition: color 0.3s;
+}
+.loading-steps li::before { content: "▸ "; color: var(--border2); }
+.loading-steps li.active { color: var(--text); }
+.loading-steps li.active::before { content: "▸ "; color: var(--accent2); }
+.loading-steps li.done { color: var(--green); }
+.loading-steps li.done::before { content: "✓ "; color: var(--green); }
+
+/* ── ERROR ── */
+#error-state {
+  display: none;
+  background: rgba(248,113,113,0.07);
+  border: 1px solid rgba(248,113,113,0.22);
+  border-radius: 14px;
+  padding: 28px;
+  margin: 40px auto 32px;
+  max-width: 560px;
+  text-align: center;
+}
+#error-state p { color: var(--red); margin-bottom: 16px; font-size: 15px; }
+.retry-btn {
+  background: none;
+  border: 1px solid var(--red);
+  color: var(--red);
+  padding: 9px 22px;
+  border-radius: 9px;
+  font-family: var(--sans);
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+.retry-btn:hover { background: rgba(248,113,113,0.1); }
+
+/* ── RESULTS ── */
+#results-state { display: none; }
+
+.results-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 36px;
+  padding-bottom: 26px;
+  border-bottom: 1px solid var(--border);
+}
+.results-url {
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--accent2);
+  margin-bottom: 8px;
+}
+.results-title { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+.results-meta { font-family: var(--mono); font-size: 11.5px; color: var(--muted); margin-top: 8px; letter-spacing: 0.5px; }
+.new-scan-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  white-space: nowrap;
+}
+.new-scan-btn:hover { border-color: var(--accent); }
+
+/* ── SCORE GRID ── */
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 40px;
+}
+.score-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 16px;
+  text-align: center;
+  transition: border-color .3s;
+}
+.score-card:hover { border-color: var(--border2); }
+.score-label { font-family: var(--mono); font-size: 10.5px; color: var(--muted); letter-spacing: 1.2px; margin-bottom: 12px; text-transform: uppercase; }
+.score-value { font-size: 38px; font-weight: 800; letter-spacing: -1.5px; font-variant-numeric: tabular-nums; }
+.score-value.high { color: var(--green); }
+.score-value.mid { color: var(--amber); }
+.score-value.low { color: var(--red); }
+.score-bar { height: 4px; background: rgba(255,255,255,0.07); border-radius: 2px; margin-top: 12px; overflow: hidden; }
+.score-bar-fill { height: 100%; border-radius: 2px; transition: width 1.2s cubic-bezier(.2,.7,.2,1); }
+.score-bar-fill.high { background: linear-gradient(90deg, var(--green), var(--money)); }
+.score-bar-fill.mid { background: var(--amber); }
+.score-bar-fill.low { background: var(--red); }
+
+/* ── REPORT SECTIONS ── */
+.section { margin-bottom: 38px; }
+.section-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--accent2);
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── ISSUES ── */
+.issues-list { display: flex; flex-direction: column; gap: 10px; }
+.issue-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  transition: border-color .3s;
+}
+.issue-card:hover { border-color: var(--border2); }
+.issue-card.critical { border-left: 3px solid var(--red); }
+.issue-card.warning { border-left: 3px solid var(--amber); }
+.issue-card.info { border-left: 3px solid var(--accent); }
+.issue-icon { font-size: 17px; margin-top: 1px; flex-shrink: 0; }
+.issue-body { flex: 1; }
+.issue-title { font-weight: 700; font-size: 15px; margin-bottom: 5px; }
+.issue-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.issue-impact {
+  display: inline-block;
+  margin-top: 9px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 3px 11px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.issue-impact.high { background: rgba(248,113,113,0.12); color: var(--red); }
+.issue-impact.medium { background: rgba(251,191,36,0.12); color: var(--amber); }
+.issue-impact.low { background: rgba(124,92,252,0.12); color: var(--accent2); }
+
+/* ── ACTION PLAN ── */
+.plan-list { display: flex; flex-direction: column; gap: 10px; }
+.plan-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color .3s;
+}
+.plan-item:hover { border-color: var(--border2); }
+.plan-num {
+  width: 32px; height: 32px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono);
+  font-size: 13px; font-weight: 500;
+  flex-shrink: 0;
+}
+.plan-body { flex: 1; }
+.plan-title { font-weight: 700; font-size: 15px; margin-bottom: 5px; }
+.plan-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.plan-meta { display: flex; gap: 10px; margin-top: 9px; flex-wrap: wrap; }
+.plan-tag {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 3px 11px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.plan-tag.effort-low { background: rgba(34,211,165,0.1); color: var(--green); }
+.plan-tag.effort-med { background: rgba(251,191,36,0.1); color: var(--amber); }
+.plan-tag.effort-high { background: rgba(248,113,113,0.1); color: var(--red); }
+.plan-tag.impact { background: rgba(74,222,128,0.1); color: var(--money); }
+
+/* ── PSYCHOLOGY INSIGHTS ── */
+.insights-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.insight-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  transition: border-color .3s;
+}
+.insight-card:hover { border-color: var(--border2); }
+.insight-principle { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent2); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+.insight-text { font-size: 14px; color: var(--muted); line-height: 1.6; }
+
+/* ── SUMMARY BOX ── */
+.summary-box {
+  background: linear-gradient(135deg, rgba(124,92,252,0.1), rgba(192,132,252,0.04));
+  border: 1px solid rgba(124,92,252,0.25);
+  border-radius: 16px;
+  padding: 26px 30px;
+  margin-bottom: 36px;
+}
+.summary-box p { font-size: 15.5px; color: var(--text); line-height: 1.7; }
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  padding: 36px 0;
+}
+.footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+.footer-copy { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.footer-links { display: flex; gap: 22px; }
+.footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color .2s; }
+.footer-links a:hover { color: var(--text); }
+
+/* ── USAGE LIMIT BANNER ── */
+#limitBanner {
+  display: none;
+  background: linear-gradient(135deg, rgba(251,191,36,0.08), rgba(124,92,252,0.06));
+  border: 1px solid rgba(251,191,36,0.22);
+  border-radius: 14px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+  font-size: 14px;
+  color: var(--amber);
+  text-align: center;
+  line-height: 1.7;
+}
+
+/* ── MODALS ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 22px;
+  padding: 42px 38px;
+  max-width: 440px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 40px 120px rgba(0,0,0,0.6);
+}
+.modal h3 { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px; }
+.modal p { color: var(--muted); font-size: 14.5px; margin-bottom: 24px; line-height: 1.6; }
+.modal input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 11px;
+  padding: 13px 16px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 12px;
+  transition: border-color .2s;
+}
+.modal input:focus { border-color: var(--accent); }
+.modal-submit {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  padding: 14px;
+  border-radius: 11px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: box-shadow .25s, opacity .2s;
+}
+.modal-submit:hover { box-shadow: 0 8px 32px rgba(124,92,252,0.45); }
+.modal-close {
+  margin-top: 14px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 14px;
+  cursor: pointer;
+}
+.modal-close:hover { color: var(--text); }
+.modal-success { display: none; }
+.modal-success h3 { color: var(--green); }
+
+/* ── UPGRADE CTA (bottom of results) ── */
+.upgrade-cta {
+  margin-top: 52px;
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(135deg, var(--accent), rgba(192,132,252,0.4)) border-box;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  padding: 38px 42px;
+  box-shadow: 0 24px 80px rgba(124,92,252,0.15);
+}
+.upgrade-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.upgrade-cta-headline {
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+.upgrade-cta-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  max-width: 460px;
+  margin: 0;
+}
+.upgrade-cta-sub strong { color: var(--text); }
+.upgrade-cta-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.upgrade-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white;
+  border: none;
+  padding: 16px 38px;
+  border-radius: 13px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: box-shadow .25s, transform .15s;
+  box-shadow: 0 8px 32px rgba(124,92,252,0.35);
+}
+.upgrade-btn:hover { box-shadow: 0 12px 48px rgba(124,92,252,0.55); transform: translateY(-2px); }
+.upgrade-btn:active { transform: translateY(0); }
+.upgrade-scans-note { font-family: var(--mono); font-size: 11.5px; color: var(--muted); }
+
+/* ── LIMIT BANNER CTA BUTTON ── */
+.limit-upgrade-btn {
+  display: inline-block;
+  margin-left: 10px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: box-shadow .25s;
+  vertical-align: middle;
+}
+.limit-upgrade-btn:hover { box-shadow: 0 6px 24px rgba(124,92,252,0.5); }
+
+/* ── COMING SOON BADGE ── */
+.soon {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  background: rgba(251,191,36,0.12);
+  color: var(--amber);
+  padding: 2px 8px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+/* ── PRO GATING ── */
+.nav-pro-area { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.nav-pro-key-link {
+  font-family: var(--mono);
+  font-size: 11px; color: var(--muted); background: none; border: none;
+  cursor: pointer; padding: 0;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.nav-pro-key-link:hover { color: var(--text); }
+.pro-badge-header {
+  display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 500;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: white; padding: 3px 11px; border-radius: 100px; margin-left: 10px;
+  text-transform: uppercase; letter-spacing: 1.5px; vertical-align: middle;
+}
+.insight-locked {
+  opacity: 0.8; border: 1px dashed var(--border2);
+}
+.insight-locked .insight-principle { color: var(--muted); }
+.insight-locked-text {
+  font-size: 13px; color: var(--muted); font-style: italic; margin-top: 8px;
+}
+.insight-unlock-btn {
+  margin-top: 12px; background: transparent; border: 1px solid var(--accent);
+  color: var(--accent2); padding: 7px 15px; border-radius: 8px;
+  font-family: var(--sans); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: background 0.2s, color 0.2s; display: block;
+}
+.insight-unlock-btn:hover { background: var(--accent); color: white; }
+.plan-desc-locked {
+  display: flex; align-items: center; gap: 10px;
+  margin-top: 6px; flex-wrap: wrap;
+}
+.plan-desc-locked-text { font-size: 13px; color: var(--muted); font-style: italic; }
+.plan-unlock-btn {
+  background: transparent; border: 1px solid var(--accent); color: var(--accent2);
+  padding: 5px 12px; border-radius: 7px; font-family: var(--sans);
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  transition: background 0.2s, color 0.2s; white-space: nowrap;
+}
+.plan-unlock-btn:hover { background: var(--accent); color: white; }
+.tag-locked {
+  background: rgba(255,255,255,0.04); color: var(--muted);
+  border: 1px dashed rgba(255,255,255,0.12);
+}
+/* Pro key modal */
+.pro-key-input {
+  width: 100%; padding: 13px 14px; background: var(--surface2);
+  border: 1px solid var(--border2); border-radius: 11px; color: var(--text);
+  font-family: var(--mono); font-size: 14px; margin-bottom: 12px; outline: none;
+  transition: border-color .2s;
+}
+.pro-key-input:focus { border-color: var(--accent); }
+.pro-key-error { font-size: 13px; color: var(--red); margin-bottom: 10px; display: none; }
+
+/* ── EMAIL CAPTURE ── */
+.email-capture {
+  background: linear-gradient(var(--surface), var(--surface)) padding-box,
+              linear-gradient(135deg, rgba(124,92,252,0.45), rgba(255,255,255,0.07)) border-box;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  padding: 26px 28px;
+  margin-bottom: 38px;
+}
+.ec-title { font-size: 18px; font-weight: 800; letter-spacing: -0.3px; margin-bottom: 6px; }
+.ec-desc { font-size: 13.5px; color: var(--muted); line-height: 1.65; max-width: 540px; }
+.ec-form { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.ec-form input {
+  flex: 1; min-width: 220px;
+  background: var(--surface2); border: 1px solid var(--border2); border-radius: 10px;
+  padding: 12px 14px; color: var(--text); font-family: var(--mono); font-size: 13.5px; outline: none;
+  transition: border-color .2s;
+}
+.ec-form input:focus { border-color: var(--accent); }
+.ec-btn {
+  background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none;
+  padding: 12px 22px; border-radius: 10px; font-family: var(--sans); font-weight: 700; font-size: 14px;
+  cursor: pointer; white-space: nowrap; transition: box-shadow .25s, opacity .2s;
+}
+.ec-btn:hover { box-shadow: 0 8px 28px rgba(124,92,252,0.45); }
+.ec-btn:disabled { opacity: .5; cursor: not-allowed; }
+.ec-fine { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-top: 10px; }
+.ec-error { display: none; font-size: 13px; color: var(--red); margin-top: 8px; }
+.ec-success { display: none; }
+.ec-success .ec-title { color: var(--green); }
+.ec-success p { font-size: 13.5px; color: var(--muted); line-height: 1.65; margin-top: 6px; }
+.ec-success p strong { color: var(--text); }
+.ec-pro-link {
+  display: inline-block; margin-top: 12px; background: transparent; border: 1px solid var(--accent);
+  color: var(--accent2); padding: 8px 18px; border-radius: 8px; font-family: var(--sans);
+  font-size: 13px; font-weight: 700; cursor: pointer; transition: background .2s, color .2s;
+}
+.ec-pro-link:hover { background: var(--accent); color: white; }
+.ec-sent { display: none; font-size: 13.5px; color: var(--muted); }
+.ec-sent b { color: var(--green); }
+.ec-resend {
+  background: none; border: none; color: var(--accent2); font-family: var(--sans); font-size: 13px;
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 0;
+}
+.ec-resend:hover { color: var(--text); }
+.ec-header-link {
+  background: none; border: none; padding: 0; margin-top: 8px;
+  font-family: var(--mono); font-size: 11.5px; color: var(--accent2); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px; display: block;
+}
+.ec-header-link:hover { color: var(--text); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  .leak-stage { grid-template-columns: 1fr; gap: 28px; margin-bottom: 80px; }
+  .leak-stage:nth-child(even) .stage-copy { order: 1; }
+  .leak-stage:nth-child(even) .stage-viz { order: 2; }
+  .leak-line, .leak-stage .stage-num { display: none; }
+  .step-card { border-left: none; padding: 8px 0 0; margin-bottom: 36px; }
+  .funnel-wrap { height: 260px; }
+}
+@media (max-width: 600px) {
+  .hero { padding: 64px 0 30px; }
+  h1 { letter-spacing: -1.5px; }
+  .scan-box { flex-direction: column; padding: 14px; gap: 12px; }
+  .scan-box input { width: 100%; text-align: center; }
+  #scan-btn { width: 100%; }
+  .results-header { flex-direction: column; }
+  .upgrade-cta { padding: 26px 22px; }
+  .upgrade-btn { width: 100%; text-align: center; }
+  .pricing-card.featured { transform: none; }
+  .pricing-card.featured:hover { transform: translateY(-4px); }
+  .pricing-card.featured, .pricing-card--soon { margin-top: 16px; }
+  .demo-report { padding: 24px 18px; }
+  .funnel-wrap { height: 220px; }
+  .final-cta { padding: 80px 0; }
+  .final-cta-btn { width: 100%; }
+  .funnel-caption { font-size: 11px; padding: 0 16px; }
+  .stage-copy h3 { font-size: 24px; }
+  .leak-head { margin-bottom: 70px; }
+  .email-capture { padding: 22px 18px; }
+  .ec-form { flex-direction: column; }
+  .ec-form input { min-width: 0; }
+  .ec-btn { width: 100%; }
+}
+
+/* ── REDUCED MOTION ── */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .rv { opacity: 1; transform: none; filter: none; transition: none; }
+  .marquee-track { animation: none; }
+  .leak-stage .draw { stroke-dashoffset: 0; transition: none; }
+  .leak-stage .fade-el { opacity: 1; transition: none; }
+  .leak-stage.in .drip { animation: none; }
+  .scan-terminal-body::after { animation: none; opacity: 0; }
+  .hero-badge .dot { animation: none; }
+  .funnel-wrap, .funnel-caption { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="bg-grain"></div>
+
+<!-- NAV -->
+<nav id="site-nav">
+  <div class="container">
+    <div class="nav-inner">
+      <div class="logo">Convert<span>Mind</span></div>
+      <div class="nav-pro-area">
+        <button class="nav-cta" onclick="goToStripe(STRIPE_PRO_URL)">Get Pro →</button>
+        <button class="nav-pro-key-link" id="pro-key-link" onclick="openProKeyModal()">Have a key?</button>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- HOME VIEW -->
+<div id="home-view">
+  <div class="container">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-badge rv">
+        <span class="dot"></span>
+        Powered by Claude · psychology engine
+      </div>
+      <h1 class="rv rv-d1">Your website has<br>a <span class="h1-leak">hole in it</span>.<br><span class="h1-fix">We find the leak.</span></h1>
+      <p class="hero-sub rv rv-d2">Every visitor who hesitates, distrusts, or bounces is revenue draining out of your funnel. ConvertMind scans any URL with <strong>consumer-psychology AI</strong> and hands you the plan to plug it.</p>
+
+      <div class="scan-box rv rv-d3">
+        <input type="url" id="url-input" placeholder="yourwebsite.com" autocomplete="off" spellcheck="false" maxlength="2048">
+        <button id="scan-btn" onclick="startScan()">Scan Now →</button>
+      </div>
+      <p class="scan-note rv rv-d3">free scan · no signup · <em>results in ~30 seconds</em></p>
+
+      <!-- LIVE FUNNEL -->
+      <div class="funnel-wrap rv" aria-hidden="true">
+        <canvas id="funnel-canvas"></canvas>
+        <div class="funnel-labels">
+          <span class="funnel-label visitors">your traffic</span>
+          <span class="funnel-label conv">customers</span>
+        </div>
+      </div>
+      <p class="funnel-caption rv" aria-hidden="true">the red ones never come back — here's why ↓</p>
+    </section>
+  </div>
+
+  <!-- MARQUEE -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee-track" id="marquee-track">
+      <span><b>Loss aversion</b> · audited</span><span><b>Social proof</b> · audited</span><span><b>Cognitive load</b> · audited</span><span><b>Trust signals</b> · audited</span><span><b>Anchoring</b> · audited</span><span><b>Urgency</b> · audited</span><span><b>Fogg behavior model</b> · applied</span><span><b>Cialdini principles</b> · applied</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <!-- LEAK JOURNEY -->
+    <section class="leak-section">
+      <div class="leak-head rv">
+        <div class="kicker" style="justify-content:center">// 01 — anatomy of a leak</div>
+        <h2>Watch a sale <span class="serif-em" style="color:var(--red)">die</span> in four steps.</h2>
+        <p>It happens thousands of times a month on your site — invisibly. Here's the journey every lost customer takes.</p>
+      </div>
+
+      <div class="leak-track">
+        <div class="leak-line"><div class="leak-line-fill" id="leak-line-fill"></div></div>
+
+        <!-- STAGE 1 -->
+        <div class="leak-stage rv">
+          <div class="stage-num">01</div>
+          <div class="stage-copy">
+            <div class="kicker">the arrival</div>
+            <h3>A visitor lands.<br><span class="serif-em">You have 5 seconds.</span></h3>
+            <p>They came from an ad, a search, a referral — money already spent. In the first moments they decide whether your page deserves attention or a back-button.</p>
+            <div class="stage-stat"><b>0:05</b>average time to first judgment</div>
+          </div>
+          <div class="stage-viz">
+            <svg viewBox="0 0 330 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="55" y="20" width="220" height="150" rx="10" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" class="draw"/>
+              <rect x="55" y="20" width="220" height="26" rx="10" stroke="rgba(255,255,255,0.18)" stroke-width="1" class="draw"/>
+              <circle cx="70" cy="33" r="3" fill="#f87171" class="fade-el"/>
+              <circle cx="82" cy="33" r="3" fill="#fbbf24" class="fade-el"/>
+              <circle cx="94" cy="33" r="3" fill="#22d3a5" class="fade-el"/>
+              <rect x="75" y="64" width="120" height="10" rx="5" fill="rgba(255,255,255,0.16)" class="fade-el"/>
+              <rect x="75" y="84" width="180" height="7" rx="3.5" fill="rgba(255,255,255,0.08)" class="fade-el"/>
+              <rect x="75" y="98" width="150" height="7" rx="3.5" fill="rgba(255,255,255,0.08)" class="fade-el"/>
+              <rect x="75" y="122" width="86" height="24" rx="7" fill="rgba(124,92,252,0.5)" class="fade-el"/>
+              <circle cx="30" cy="95" r="11" stroke="#c084fc" stroke-width="2" class="draw"/>
+              <path d="M30 84 v-30" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="3 4" class="draw"/>
+              <path d="M41 95 h14 m-5 -5 l5 5 l-5 5" stroke="#c084fc" stroke-width="2" class="draw"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- STAGE 2 -->
+        <div class="leak-stage rv">
+          <div class="stage-num">02</div>
+          <div class="stage-copy">
+            <div class="kicker">the hesitation</div>
+            <h3>They squint at your headline.<br><span class="serif-em">Confusion costs.</span></h3>
+            <p>Vague value props, walls of text, three competing CTAs. Cognitive load is the silent killer — when a brain has to work, a hand reaches for the back button.</p>
+            <div class="stage-stat"><b>57%</b>of visitors leave pages they find hard to parse — industry UX research</div>
+          </div>
+          <div class="stage-viz">
+            <svg viewBox="0 0 330 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="165" cy="92" r="46" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" class="draw"/>
+              <path d="M150 84 q4 -7 11 -3 q8 4 3 12 q-4 7 -1 11" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" class="draw"/>
+              <circle cx="163" cy="113" r="2.4" fill="#fbbf24" class="fade-el"/>
+              <path d="M104 50 l-22 -14 M104 134 l-22 14 M226 50 l22 -14 M226 134 l22 14" stroke="rgba(248,113,113,0.6)" stroke-width="1.5" stroke-dasharray="4 4" class="draw"/>
+              <text x="58" y="30" fill="rgba(248,113,113,0.75)" font-family="DM Mono" font-size="10" class="fade-el">CTA?</text>
+              <text x="244" y="30" fill="rgba(248,113,113,0.75)" font-family="DM Mono" font-size="10" class="fade-el">jargon</text>
+              <text x="48" y="178" fill="rgba(248,113,113,0.75)" font-family="DM Mono" font-size="10" class="fade-el">no proof</text>
+              <text x="240" y="178" fill="rgba(248,113,113,0.75)" font-family="DM Mono" font-size="10" class="fade-el">clutter</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- STAGE 3 -->
+        <div class="leak-stage rv">
+          <div class="stage-num">03</div>
+          <div class="stage-copy">
+            <div class="kicker">the distrust</div>
+            <h3>They look for a reason<br>to <span class="serif-em">believe you</span> — and miss.</h3>
+            <p>No testimonials above the fold. No guarantees near the price. Stock photos where faces should be. Trust isn't a section of your site; it's a feeling your site fails to produce.</p>
+            <div class="stage-stat"><b>81%</b>won't buy from a site they don't trust on sight — consumer trust studies</div>
+          </div>
+          <div class="stage-viz">
+            <svg viewBox="0 0 330 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M165 28 l52 18 v44 c0 34 -24 56 -52 70 c-28 -14 -52 -36 -52 -70 v-44 z" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" class="draw"/>
+              <path d="M165 28 l52 18 v44 c0 34 -24 56 -52 70" stroke="#f87171" stroke-width="2" class="draw"/>
+              <path d="M143 96 l16 16 l30 -34" stroke="rgba(255,255,255,0.18)" stroke-width="2.5" stroke-linecap="round" class="draw"/>
+              <path d="M196 132 l26 26 m0 -26 l-26 26" stroke="#f87171" stroke-width="2.5" stroke-linecap="round" class="draw"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- STAGE 4 -->
+        <div class="leak-stage rv">
+          <div class="stage-num">04</div>
+          <div class="stage-copy">
+            <div class="kicker">the exit</div>
+            <h3>Gone. <span class="serif-em">And the worst part?</span><br>You never knew why.</h3>
+            <p>Analytics shows you <em>that</em> they left — never <em>why</em>. The reasons are psychological, and they're sitting in plain sight on your page. That's the part we read.</p>
+            <div class="stage-stat" style="border-color:var(--money);color:var(--money)"><b>~30s</b>is all ConvertMind needs to name every reason</div>
+          </div>
+          <div class="stage-viz">
+            <svg viewBox="0 0 330 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M60 40 h150 v120 h-150 z" stroke="rgba(255,255,255,0.22)" stroke-width="1.5" class="draw"/>
+              <path d="M210 100 h60 m-12 -12 l12 12 l-12 12" stroke="#f87171" stroke-width="2.5" stroke-linecap="round" class="draw"/>
+              <circle cx="135" cy="80" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" class="draw"/>
+              <path d="M135 90 v22 m0 0 l-10 18 m10 -18 l10 18 m-10 -28 l-14 8 m14 -8 l14 8" stroke="rgba(255,255,255,0.3)" stroke-width="1.5" stroke-linecap="round" class="draw"/>
+              <g class="fade-el">
+                <circle cx="90" cy="170" r="3" fill="#f87171" class="drip"/>
+                <circle cx="120" cy="170" r="3" fill="#f87171" class="drip" style="animation-delay:.4s"/>
+                <circle cx="150" cy="170" r="3" fill="#f87171" class="drip" style="animation-delay:.8s"/>
+              </g>
+              <text x="92" y="32" fill="rgba(255,255,255,0.35)" font-family="DM Mono" font-size="10" class="fade-el">why? why? why?</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:80px" class="rv">
+        <button class="final-cta-btn" onclick="focusScanBox()">Find my leaks — free scan →</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- SAMPLE REPORT DEMO -->
+  <section class="demo-section">
+    <div class="container">
+      <div class="demo-head rv">
+        <div class="kicker" style="justify-content:center">// 02 — the instrument</div>
+        <h2>This is what your leak<br>looks like, <span class="serif-em" style="color:var(--accent2)">named</span>.</h2>
+        <p>A real ConvertMind report — six psychology-scored dimensions, every weakness diagnosed, every fix ranked by conversion lift.</p>
+      </div>
+
+      <div class="demo-report rv" id="demo-report">
+        <div class="demo-chrome"><i></i><i></i><i></i><span class="demo-tag">sample audit</span></div>
+        <div class="demo-url">https://acme-store.example</div>
+        <div class="demo-title">Website Audit Report</div>
+
+        <div class="demo-dials">
+          <div class="demo-dial">
+            <svg viewBox="0 0 86 86"><circle class="dial-track" cx="43" cy="43" r="35" fill="none" stroke-width="6"/><circle class="dial-val" cx="43" cy="43" r="35" fill="none" stroke="#f87171" stroke-width="6" data-score="38" transform="rotate(-90 43 43)"/><text class="dial-num" x="43" y="49" text-anchor="middle">38</text></svg>
+            <span class="dial-label">Trust</span>
+          </div>
+          <div class="demo-dial">
+            <svg viewBox="0 0 86 86"><circle class="dial-track" cx="43" cy="43" r="35" fill="none" stroke-width="6"/><circle class="dial-val" cx="43" cy="43" r="35" fill="none" stroke="#fbbf24" stroke-width="6" data-score="55" transform="rotate(-90 43 43)"/><text class="dial-num" x="43" y="49" text-anchor="middle">55</text></svg>
+            <span class="dial-label">Conversion</span>
+          </div>
+          <div class="demo-dial">
+            <svg viewBox="0 0 86 86"><circle class="dial-track" cx="43" cy="43" r="35" fill="none" stroke-width="6"/><circle class="dial-val" cx="43" cy="43" r="35" fill="none" stroke="#f87171" stroke-width="6" data-score="31" transform="rotate(-90 43 43)"/><text class="dial-num" x="43" y="49" text-anchor="middle">31</text></svg>
+            <span class="dial-label">Psychology</span>
+          </div>
+          <div class="demo-dial">
+            <svg viewBox="0 0 86 86"><circle class="dial-track" cx="43" cy="43" r="35" fill="none" stroke-width="6"/><circle class="dial-val" cx="43" cy="43" r="35" fill="none" stroke="#fbbf24" stroke-width="6" data-score="62" transform="rotate(-90 43 43)"/><text class="dial-num" x="43" y="49" text-anchor="middle">62</text></svg>
+            <span class="dial-label">Copy</span>
+          </div>
+          <div class="demo-dial">
+            <svg viewBox="0 0 86 86"><circle class="dial-track" cx="43" cy="43" r="35" fill="none" stroke-width="6"/><circle class="dial-val" cx="43" cy="43" r="35" fill="none" stroke="#22d3a5" stroke-width="6" data-score="74" transform="rotate(-90 43 43)"/><text class="dial-num" x="43" y="49" text-anchor="middle">74</text></svg>
+            <span class="dial-label">Mobile</span>
+          </div>
+          <div class="demo-dial">
+            <svg viewBox="0 0 86 86"><circle class="dial-track" cx="43" cy="43" r="35" fill="none" stroke-width="6"/><circle class="dial-val" cx="43" cy="43" r="35" fill="none" stroke="#fbbf24" stroke-width="6" data-score="48" transform="rotate(-90 43 43)"/><text class="dial-num" x="43" y="49" text-anchor="middle">48</text></svg>
+            <span class="dial-label">Overall</span>
+          </div>
+        </div>
+
+        <div class="demo-issue">
+          <span style="font-size:16px">🔴</span>
+          <div>
+            <div class="di-title">Hero promises nothing measurable</div>
+            <div class="di-desc">"Welcome to Acme" tells a visitor what you're called, not what they gain. Loss-framed, outcome-specific headlines convert 27–41% better in this category.</div>
+          </div>
+        </div>
+
+        <div class="demo-locked">
+          <div class="dl-principle">Social Proof — Cialdini</div>
+          <div class="dl-blur">Your checkout page surfaces zero customer evidence at the exact moment purchase anxiety peaks. Moving two testimonials adjacent to the payment form historically lifts completion by…</div>
+          <div class="dl-cta">🔒 two more insights & the full fix plan — unlocked with Pro</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:36px" class="rv">
+        <button class="final-cta-btn" onclick="focusScanBox()">Run this scan on my site — free →</button>
+        <p class="scan-note" style="margin-top:12px">no signup · results in ~30 seconds</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how-section">
+    <div class="container">
+      <div class="rv">
+        <div class="kicker" style="justify-content:center">// 03 — the method</div>
+        <h2>No snippets. No setup.<br><span class="serif-em" style="color:var(--accent2)">Just the URL.</span></h2>
+        <p class="how-sub" style="margin-top:14px">Nothing to install, nothing to connect. Three steps from URL to action plan.</p>
+      </div>
+      <div class="steps-grid">
+        <div class="step-card rv">
+          <span class="step-num">/ 01</span>
+          <div class="step-title">Deep Scan</div>
+          <div class="step-desc">We fetch and analyze your website's structure, copy, CTAs, trust signals, and UX patterns in seconds.</div>
+        </div>
+        <div class="step-card rv rv-d1">
+          <span class="step-num">/ 02</span>
+          <div class="step-title">Psychology Analysis</div>
+          <div class="step-desc">Our AI applies Cialdini's principles, the Fogg Behavior Model, and conversion psychology frameworks to identify weaknesses.</div>
+        </div>
+        <div class="step-card rv rv-d2">
+          <span class="step-num">/ 03</span>
+          <div class="step-title">Prioritized Action Plan</div>
+          <div class="step-desc">You get specific changes ranked by conversion impact and implementation effort — each tied to the psychological principle driving it.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TRUST BAND -->
+  <section class="trust-section">
+    <div class="container">
+      <div class="kicker rv">// 04 — why trust the auditor</div>
+      <div class="trust-grid">
+        <div class="trust-card rv">
+          <span class="tc-icon">/ 01</span>
+          <div class="tc-title">Powered by Claude</div>
+          <div class="tc-desc">Analysis runs on Anthropic's Claude — the same model trusted by Fortune 500 product teams — primed as a CRO expert and consumer psychologist.</div>
+        </div>
+        <div class="trust-card rv rv-d1">
+          <span class="tc-icon">/ 02</span>
+          <div class="tc-title">Nothing stored</div>
+          <div class="tc-desc">No account, no tracking pixel, no database. Your URL is fetched, analyzed, and forgotten. The report lives in your browser only.</div>
+        </div>
+        <div class="trust-card rv rv-d2">
+          <span class="tc-icon">/ 03</span>
+          <div class="tc-title">Safe by design</div>
+          <div class="tc-desc">Our scanner can only read public pages — it can never be tricked into probing private networks or servers. Your scan is read-only and harmless.</div>
+        </div>
+        <div class="trust-card rv rv-d3">
+          <span class="tc-icon">/ 04</span>
+          <div class="tc-title">Frameworks, not vibes</div>
+          <div class="tc-desc">Every finding cites the psychological principle behind it — Cialdini, Fogg, loss aversion — so your team knows <em>why</em>, not just <em>what</em>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="pricing-section" id="pricing">
+    <div class="container">
+      <div class="rv">
+        <div class="kicker" style="justify-content:center">// 05 — plug the leak</div>
+        <h2>Cheaper than the leak.</h2>
+        <p class="pricing-sub" style="margin-top:14px">One recovered customer typically pays for a year of Pro.<br><span style="font-size:13px">Questions before buying? <a href="mailto:hello@convertmind.ai" style="color:var(--accent2)">hello@convertmind.ai</a> — a human answers.</span></p>
+      </div>
+      <div class="pricing-grid">
+        <div class="pricing-card rv">
+          <div class="pricing-name">Starter</div>
+          <div class="pricing-price">Free</div>
+          <div class="pricing-desc">For individuals & small sites</div>
+          <ul class="pricing-features">
+            <li>3 scans per month</li>
+            <li>Scores across 6 dimensions</li>
+            <li>All issues identified</li>
+            <li>1 psychology insight</li>
+            <li>1 action item in full</li>
+          </ul>
+          <button class="pricing-cta secondary" onclick="document.getElementById('url-input').focus(); window.scrollTo({top:0,behavior:'smooth'})">Start Free</button>
+        </div>
+        <div class="pricing-card featured rv rv-d1">
+          <div class="pricing-badge">Most Popular</div>
+          <div class="pricing-name">Pro</div>
+          <div class="pricing-price"><s class="pricing-was">$29.99</s>$20.99 <span>/ mo</span> <span class="soon" style="margin-left:6px">Launch pricing</span></div>
+          <div class="pricing-desc">For serious businesses</div>
+          <ul class="pricing-features">
+            <li>Unlimited scans</li>
+            <li>All 3 psychology insights</li>
+            <li>Full 4-step action plan + conversion lift data</li>
+            <li>Cancel anytime</li>
+          </ul>
+          <button class="pricing-cta primary" onclick="goToStripe(STRIPE_PRO_URL)">Get Pro — $20.99/mo →</button>
+          <p style="font-family:var(--mono);font-size:11.5px;color:var(--muted);text-align:center;margin-top:12px">Your Pro key is delivered by email within minutes.</p>
+        </div>
+        <div class="pricing-card pricing-card--soon rv rv-d2">
+          <div class="pricing-badge" style="background:var(--muted);">Coming Soon</div>
+          <div class="pricing-name">Agency</div>
+          <div class="pricing-price">$69.99 <span>/ mo at launch</span></div>
+          <div class="pricing-desc">Join the waitlist — launching soon</div>
+          <ul class="pricing-features">
+            <li>Everything in Pro</li>
+            <li>White-label reports</li>
+            <li>10 client workspaces</li>
+            <li>Bulk scanning</li>
+            <li>Priority support</li>
+          </ul>
+          <button class="pricing-cta secondary" onclick="openWaitlist()">Join Agency Waitlist →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta">
+    <div class="container rv">
+      <h2>Your leak is running<br><span class="serif-em" style="color:var(--accent2)">right now</span>.</h2>
+      <p>30 seconds from now you'll know exactly where the money goes.</p>
+      <button class="final-cta-btn" onclick="focusScanBox()">Find My Leak — Free →</button>
+    </div>
+  </section>
+</div>
+
+<!-- ANALYZER VIEW -->
+<div id="analyzer-view">
+  <div class="container">
+    <div id="limitBanner">
+      You've used all 3 free scans this month — your next leak is still out there.
+      Pro is unlimited, $20.99/mo, cancel anytime.
+      <button class="limit-upgrade-btn" onclick="goToStripe(STRIPE_PRO_URL)">Go unlimited →</button>
+    </div>
+
+    <!-- LOADING -->
+    <div id="loading-state">
+      <div class="scan-terminal">
+        <div class="scan-terminal-bar"><i></i><i></i><i></i><span class="st-title">convertmind — leak scan in progress</span></div>
+        <div class="scan-terminal-body">
+          <div class="spinner"></div>
+          <p class="loading-headline">Analyzing your website…</p>
+          <p class="loading-sub">~20–30 seconds · psychology engine engaged</p>
+          <ul class="loading-steps">
+            <li id="step-1">Fetching website content</li>
+            <li id="step-2">Scanning UX & copy patterns</li>
+            <li id="step-3">Applying psychology frameworks</li>
+            <li id="step-4">Building improvement plan</li>
+            <li id="step-5">Scoring conversion potential</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div id="error-state">
+      <p id="error-msg">Something went wrong. Please try again.</p>
+      <button class="retry-btn" onclick="retryOrReset()">↺ Try Again</button>
+      <p style="font-family:var(--mono);font-size:11.5px;color:var(--muted);margin:14px 0 0">Failed scans never count against your free limit.</p>
+    </div>
+
+    <!-- RESULTS -->
+    <div id="results-state">
+      <div class="results-header">
+        <div>
+          <div class="results-url" id="results-url"></div>
+          <div class="results-title" id="results-title">Website Audit Report</div>
+          <div class="results-meta" id="results-meta"></div>
+          <button class="ec-header-link" onclick="focusEmailCapture()">Email me this report →</button>
+        </div>
+        <button class="new-scan-btn" onclick="resetToHome()">← New Scan</button>
+      </div>
+
+      <div class="summary-box">
+        <p id="results-summary"></p>
+      </div>
+
+      <!-- SCORES -->
+      <div class="section">
+        <div class="section-title">Overall Scores</div>
+        <div class="scores-grid" id="scores-grid"></div>
+      </div>
+
+      <!-- ISSUES -->
+      <div class="section">
+        <div class="section-title">Identified Weaknesses</div>
+        <div class="issues-list" id="issues-list"></div>
+      </div>
+
+      <!-- EMAIL CAPTURE -->
+      <div class="email-capture" id="email-capture">
+        <div id="ec-form-state">
+          <div class="ec-title">📬 Keep this report.</div>
+          <p class="ec-desc" id="ec-desc"></p>
+          <div class="ec-form">
+            <input type="email" id="ec-email" placeholder="your@email.com" maxlength="254" autocomplete="email" spellcheck="false">
+            <button class="ec-btn" id="ec-btn" onclick="sendReportEmail()">Send my report →</button>
+          </div>
+          <p class="ec-error" id="ec-error"></p>
+          <p class="ec-fine">No spam. Unsubscribe in one click. We never share your email.</p>
+        </div>
+        <div class="ec-success" id="ec-success-state">
+          <div class="ec-title">✓ On its way.</div>
+          <p>Check your inbox in the next minute or two.</p>
+          <div id="ec-success-pro">
+            <p>While you're here — <strong>Pro unlocks the remaining insights and the full fix plan</strong> in this exact report.</p>
+            <button class="ec-pro-link" onclick="goToStripe(STRIPE_PRO_URL)">See Pro →</button>
+          </div>
+        </div>
+        <div class="ec-sent" id="ec-sent-state">
+          <b>✓</b> Report sent to <span id="ec-sent-email"></span> · <button class="ec-resend" onclick="sendReportEmail('resend')">resend</button>
+        </div>
+      </div>
+
+      <!-- PSYCHOLOGY -->
+      <div class="section">
+        <div class="section-title">Psychology Insights</div>
+        <div class="insights-grid" id="insights-grid"></div>
+      </div>
+
+      <!-- ACTION PLAN -->
+      <div class="section">
+        <div class="section-title">Prioritized Action Plan</div>
+        <div class="plan-list" id="plan-list"></div>
+      </div>
+
+      <!-- UPGRADE CTA -->
+      <div class="upgrade-cta" id="upgrade-cta-section">
+        <div class="upgrade-cta-inner">
+          <div>
+            <div class="upgrade-cta-headline" id="upgrade-cta-headline">3 action items and 2 psychology insights are locked.</div>
+            <p class="upgrade-cta-sub" id="upgrade-cta-sub">You can see <strong>what's wrong</strong> with your site — Pro shows you exactly <strong>how to fix all of it</strong>, with step-by-step guidance and estimated conversion lift for each change.</p>
+          </div>
+          <div class="upgrade-cta-actions">
+            <button class="upgrade-btn" onclick="goToStripe(STRIPE_PRO_URL)">Get Pro — $20.99/mo →</button>
+            <span class="upgrade-scans-note">Key by email in minutes · cancel anytime</span>
+            <span class="upgrade-scans-note" id="scans-remaining"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-copy">© 2026 ConvertMind. Built with Claude AI.</div>
+      <div class="footer-links">
+        <a href="#" onclick="openWaitlist();return false;">Join Waitlist</a>
+        <a href="mailto:hello@convertmind.ai">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- PRO KEY MODAL -->
+<div class="modal-overlay pro-key-modal" id="proKeyModal">
+  <div class="modal">
+    <h3>Enter Pro Access Key</h3>
+    <p>Your key was sent after purchase. Check your email or contact hello@convertmind.ai if you can't find it.</p>
+    <div class="pro-key-error" id="pro-key-error"></div>
+    <input type="text" class="pro-key-input" id="pro-key-input" placeholder="Paste your Pro key here" autocomplete="off" spellcheck="false">
+    <button class="modal-submit" onclick="activateProKey()">Activate Pro</button>
+    <button class="modal-close" onclick="closeProKeyModal()">Cancel</button>
+  </div>
+</div>
+
+<!-- WAITLIST MODAL -->
+<div class="modal-overlay" id="waitlistModal">
+  <div class="modal">
+    <div id="modal-form-content">
+      <h3>Get Agency Updates</h3>
+      <p>Be first to know when Agency features launch — competitor analysis, white-label reports, and bulk scanning for teams.</p>
+      <input type="email" id="waitlist-email" placeholder="your@email.com">
+      <button class="modal-submit" onclick="submitWaitlist()">Get Early Access</button>
+      <button class="modal-close" onclick="closeWaitlist()">No thanks</button>
+    </div>
+    <div class="modal-success" id="modal-success-content">
+      <h3>You're on the list! 🎉</h3>
+      <p>We'll email you when Agency features launch. In the meantime, try Pro — unlimited scans start at $20.99/mo.</p>
+      <button class="modal-close" onclick="closeWaitlist()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXIT-INTENT EMAIL MODAL (report page only, desktop, fires once) -->
+<div class="modal-overlay" id="exitModal">
+  <div class="modal">
+    <div id="exit-form-content">
+      <h3>This report disappears when you close the tab.</h3>
+      <p>ConvertMind stores nothing — get a copy in your inbox before you go. Occasionally receive high-value website conversion tips.</p>
+      <input type="email" id="ec-exit-email" placeholder="your@email.com" maxlength="254" autocomplete="email" spellcheck="false">
+      <p class="ec-error" id="ec-exit-error" style="text-align:left;margin:0 0 10px"></p>
+      <button class="modal-submit" id="ec-exit-btn" onclick="sendReportEmail('exit')">Email me my report →</button>
+      <button class="modal-close" onclick="closeExitModal()">No thanks</button>
+    </div>
+    <div class="modal-success" id="exit-success-content">
+      <h3>✓ On its way.</h3>
+      <p>Check your inbox in the next minute or two.</p>
+      <button class="modal-close" onclick="closeExitModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ── STRIPE ──
+// URLs are loaded from /api/config at runtime.
+// Set STRIPE_PRO_URL and STRIPE_AGENCY_URL in Vercel environment variables.
+let STRIPE_PRO_URL    = null;
+let STRIPE_AGENCY_URL = null;
+
+fetch('/api/config')
+  .then(r => r.json())
+  .then(cfg => {
+    STRIPE_PRO_URL    = cfg.proUrl    || null;
+    STRIPE_AGENCY_URL = cfg.agencyUrl || null;
+  })
+  .catch(() => {}); // Non-fatal — buttons silently inactive if config unreachable
+
+updateNavProStatus();
+
+function goToStripe(url) {
+  if (!url) {
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      console.warn('[ConvertMind] Stripe URL not configured. Set STRIPE_PRO_URL / STRIPE_AGENCY_URL in your environment variables.');
+      return;
+    }
+    // Checkout unavailable (config unreachable / env unset) — a buy click must
+    // never silently do nothing. Route the buyer to a human instead.
+    window.location.href = 'mailto:hello@convertmind.ai?subject=ConvertMind%20Pro%20access&body=Hi%20—%20I%20tried%20to%20buy%20Pro%20but%20checkout%20didn%27t%20open.';
+    return;
+  }
+  window.open(url, '_blank');
+}
+
+// ── STATE ──
+let lastUrl = '';
+const SCAN_LIMIT = 3;
+const STORAGE_KEY = 'cm_scans';
+
+function getScanCount() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+    return data[monthKey] || 0;
+  } catch { return 0; }
+}
+
+function incrementScanCount() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    const now = new Date();
+    const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
+    data[monthKey] = (data[monthKey] || 0) + 1;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+// ── PRO KEY ──
+function getProKey() { return localStorage.getItem('cm_pro_key') || ''; }
+function setProKey(k) {
+  if (k) localStorage.setItem('cm_pro_key', k);
+  else localStorage.removeItem('cm_pro_key');
+}
+
+function updateNavProStatus() {
+  const link = document.getElementById('pro-key-link');
+  if (!link) return;
+  if (getProKey()) {
+    link.textContent = 'Pro active ✓';
+    link.style.color = 'var(--green)';
+    link.style.textDecoration = 'none';
+  } else {
+    link.textContent = 'Have a key?';
+    link.style.color = '';
+    link.style.textDecoration = '';
+  }
+}
+
+function openProKeyModal() {
+  document.getElementById('pro-key-input').value = getProKey();
+  document.getElementById('pro-key-error').style.display = 'none';
+  document.getElementById('proKeyModal').classList.add('open');
+  setTimeout(() => document.getElementById('pro-key-input').focus(), 50);
+}
+
+function closeProKeyModal() {
+  document.getElementById('proKeyModal').classList.remove('open');
+}
+
+function activateProKey() {
+  const key = document.getElementById('pro-key-input').value.trim();
+  const errEl = document.getElementById('pro-key-error');
+  if (!key) {
+    errEl.textContent = 'Please enter your Pro key.';
+    errEl.style.display = 'block';
+    return;
+  }
+  setProKey(key);
+  closeProKeyModal();
+  updateNavProStatus();
+  if (lastUrl) { showLoading(); runAnalysis(lastUrl); }
+}
+
+// ── SCAN FLOW ──
+function startScan() {
+  const input = document.getElementById('url-input');
+  let url = input.value.trim();
+
+  if (!url) { input.focus(); return; }
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    url = 'https://' + url;
+    input.value = url;
+  }
+
+  try { new URL(url); } catch {
+    showError('Please enter a valid URL (e.g. https://yoursite.com)');
+    showAnalyzerView();
+    return;
+  }
+
+  if (!getProKey() && getScanCount() >= SCAN_LIMIT) {
+    document.getElementById('limitBanner').style.display = 'block';
+    showAnalyzerView();
+    return; // scan limit reached — do not proceed
+  }
+
+  lastUrl = url;
+  document.getElementById('scan-btn').disabled = true;
+  document.getElementById('scan-btn').textContent = 'Scanning…';
+  showAnalyzerView();
+  showLoading();
+  runAnalysis(url);
+}
+
+function showAnalyzerView() {
+  document.getElementById('home-view').style.display = 'none';
+  document.getElementById('analyzer-view').style.display = 'block';
+  window.scrollTo(0, 0);
+}
+
+function resetToHome() {
+  document.getElementById('home-view').style.display = 'block';
+  document.getElementById('analyzer-view').style.display = 'none';
+  document.getElementById('limitBanner').style.display = 'none';
+  hideAll();
+  document.getElementById('url-input').value = '';
+  document.getElementById('scan-btn').disabled = false;
+  document.getElementById('scan-btn').textContent = 'Scan Now →';
+  window.scrollTo(0, 0);
+}
+
+function retryOrReset() {
+  if (lastUrl) {
+    hideAll();
+    showLoading();
+    runAnalysis(lastUrl);
+  } else {
+    resetToHome();
+  }
+}
+
+// ── LOADING ANIMATION ──
+let stepTimer = null;
+
+function showLoading() {
+  hideAll();
+  document.getElementById('loading-state').style.display = 'block';
+
+  const steps = ['step-1','step-2','step-3','step-4','step-5'];
+  steps.forEach(id => {
+    const el = document.getElementById(id);
+    el.classList.remove('active','done');
+  });
+
+  let i = 0;
+  if (stepTimer) clearInterval(stepTimer);
+  stepTimer = setInterval(() => {
+    if (i > 0) document.getElementById(steps[i-1]).classList.replace('active','done');
+    if (i < steps.length) {
+      document.getElementById(steps[i]).classList.add('active');
+      i++;
+    } else {
+      clearInterval(stepTimer);
+    }
+  }, 5000);
+}
+
+function hideAll() {
+  document.getElementById('loading-state').style.display = 'none';
+  document.getElementById('error-state').style.display = 'none';
+  document.getElementById('results-state').style.display = 'none';
+  if (stepTimer) { clearInterval(stepTimer); stepTimer = null; }
+}
+
+function showError(msg) {
+  hideAll();
+  document.getElementById('error-state').style.display = 'block';
+  document.getElementById('error-msg').textContent = msg || 'Something went wrong. Please try again.';
+}
+
+// ── API CALL ──
+async function runAnalysis(url) {
+  const abortCtrl = new AbortController();
+  const fetchTimeout = setTimeout(() => abortCtrl.abort(), 45000);
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, proKey: getProKey() }),
+      signal: abortCtrl.signal
+    });
+    clearTimeout(fetchTimeout);
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || `Server error (${res.status})`);
+    }
+
+    const data = await res.json();
+    if (!data || !data.scores) throw new Error('Invalid response from server.');
+
+    lastReportData = data;
+    incrementScanCount();
+    document.getElementById('scan-btn').disabled = false;
+    document.getElementById('scan-btn').textContent = 'Scan Now →';
+    clearInterval(stepTimer);
+    ['step-1','step-2','step-3','step-4','step-5'].forEach(id => {
+      document.getElementById(id).className = 'done';
+    });
+
+    setTimeout(() => renderResults(url, data), 400);
+
+  } catch (err) {
+    clearTimeout(fetchTimeout);
+    document.getElementById('scan-btn').disabled = false;
+    document.getElementById('scan-btn').textContent = 'Scan Now →';
+    console.error('Analysis error:', err);
+    const msg = err.name === 'AbortError'
+      ? 'Analysis timed out. Please try again.'
+      : (err.message || 'Analysis failed. Please try again.');
+    showError(msg);
+  }
+}
+
+// ── RENDER RESULTS ──
+function renderResults(url, data) {
+  hideAll();
+  document.getElementById('results-state').style.display = 'block';
+
+  const isPro = data.tier === 'pro';
+
+  // Pro badge on report title
+  const titleEl = document.getElementById('results-title');
+  if (titleEl) {
+    titleEl.innerHTML = 'Website Audit Report' + (isPro ? ' <span class="pro-badge-header">Pro</span>' : '');
+  }
+
+  // Scans-remaining note in upgrade CTA
+  const scansEl = document.getElementById('scans-remaining');
+  if (scansEl) {
+    const used = getScanCount();
+    const remaining = Math.max(0, SCAN_LIMIT - used);
+    scansEl.textContent = remaining === 0
+      ? 'Free scans used up for this month.'
+      : `${remaining} free scan${remaining === 1 ? '' : 's'} remaining this month.`;
+  }
+
+  // URL
+  document.getElementById('results-url').textContent = url;
+
+  // Scan metadata (presentation only)
+  const metaEl = document.getElementById('results-meta');
+  if (metaEl) {
+    metaEl.textContent = 'Scanned ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      + ' · 6 dimensions · psychology frameworks applied';
+  }
+
+  // Summary
+  document.getElementById('results-summary').textContent = data.summary || '';
+
+  // Scores
+  const scoresGrid = document.getElementById('scores-grid');
+  scoresGrid.innerHTML = '';
+  const scoreItems = [
+    { label: 'Trust & Credibility', key: 'trust' },
+    { label: 'Conversion Design', key: 'conversion' },
+    { label: 'Psychology Score', key: 'psychology' },
+    { label: 'Copy Effectiveness', key: 'copy' },
+    { label: 'Mobile Experience', key: 'mobile' },
+    { label: 'Overall Profit Score', key: 'overall' },
+  ];
+
+  scoreItems.forEach(({ label, key }) => {
+    const val = Math.min(100, Math.max(0, Number(data.scores[key]) || 0));
+    const cls = val >= 70 ? 'high' : val >= 40 ? 'mid' : 'low';
+    const card = document.createElement('div');
+    card.className = 'score-card';
+    card.innerHTML = `
+      <div class="score-label">${label}</div>
+      <div class="score-value ${cls}">${val}<small style="font-size:16px;font-weight:500">/100</small></div>
+      <div class="score-bar"><div class="score-bar-fill ${cls}" style="width:0%" data-width="${val}%"></div></div>
+    `;
+    scoresGrid.appendChild(card);
+  });
+
+  // Animate bars — double rAF ensures width:0 is painted before transitioning
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    document.querySelectorAll('.score-bar-fill').forEach(el => {
+      el.style.width = el.dataset.width;
+    });
+  }));
+
+  // Issues
+  const issuesList = document.getElementById('issues-list');
+  issuesList.innerHTML = '';
+  (data.issues || []).forEach(issue => {
+    const icons = { critical: '🔴', warning: '🟡', info: '🔵' };
+    const card = document.createElement('div');
+    card.className = `issue-card ${issue.severity || 'info'}`;
+    card.innerHTML = `
+      <div class="issue-icon">${icons[issue.severity] || '🔵'}</div>
+      <div class="issue-body">
+        <div class="issue-title">${escHtml(issue.title)}</div>
+        <div class="issue-desc">${escHtml(issue.description)}</div>
+        <span class="issue-impact ${issue.impact || 'low'}">${issue.impact || 'low'} impact</span>
+      </div>
+    `;
+    issuesList.appendChild(card);
+  });
+  if (!issuesList.children.length) {
+    issuesList.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:4px 0">No issues identified.</p>';
+  }
+
+  // Psychology insights
+  const insightsGrid = document.getElementById('insights-grid');
+  insightsGrid.innerHTML = '';
+  (data.psychologyInsights || []).forEach((insight, idx) => {
+    const card = document.createElement('div');
+    if (!isPro && idx > 0) {
+      card.className = 'insight-card insight-locked';
+      card.innerHTML = `
+        <div class="insight-principle">${escHtml(insight.principle)}</div>
+        <div class="insight-locked-text">🔒 Full analysis locked — see how this principle applies to your site</div>
+        <button class="insight-unlock-btn" onclick="goToStripe(STRIPE_PRO_URL)">Unlock with Pro →</button>
+      `;
+    } else {
+      card.className = 'insight-card';
+      card.innerHTML = `
+        <div class="insight-principle">${escHtml(insight.principle)}</div>
+        <div class="insight-text">${escHtml(insight.text)}</div>
+      `;
+    }
+    insightsGrid.appendChild(card);
+  });
+  if (!insightsGrid.children.length) {
+    insightsGrid.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:4px 0">No insights available.</p>';
+  }
+
+  // Action plan
+  const planList = document.getElementById('plan-list');
+  planList.innerHTML = '';
+  (data.actionPlan || []).forEach((item, idx) => {
+    const effortClass = { low: 'effort-low', medium: 'effort-med', high: 'effort-high' }[item.effort] || 'effort-low';
+    const card = document.createElement('div');
+    if (!isPro && idx > 0) {
+      card.className = 'plan-item';
+      card.innerHTML = `
+        <div class="plan-num">${idx + 1}</div>
+        <div class="plan-body">
+          <div class="plan-title">${escHtml(item.title)}</div>
+          <div class="plan-desc-locked">
+            <span class="plan-desc-locked-text">🔒 Step-by-step implementation guide locked</span>
+            <button class="plan-unlock-btn" onclick="goToStripe(STRIPE_PRO_URL)">Get Pro →</button>
+          </div>
+          <div class="plan-meta">
+            <span class="plan-tag tag-locked">? effort</span>
+            <span class="plan-tag tag-locked">+?% conversion</span>
+          </div>
+        </div>
+      `;
+    } else {
+      card.className = 'plan-item';
+      card.innerHTML = `
+        <div class="plan-num">${idx + 1}</div>
+        <div class="plan-body">
+          <div class="plan-title">${escHtml(item.title)}</div>
+          <div class="plan-desc">${escHtml(item.description)}</div>
+          <div class="plan-meta">
+            <span class="plan-tag ${effortClass}">${item.effort || 'low'} effort</span>
+            <span class="plan-tag impact">+${item.conversionLift || '?'} conversion</span>
+          </div>
+        </div>
+      `;
+    }
+    planList.appendChild(card);
+  });
+  if (!planList.children.length) {
+    planList.innerHTML = '<p style="color:var(--muted);font-size:14px;padding:4px 0">No action items available.</p>';
+  }
+
+  // Show/hide upgrade CTA based on tier
+  const upgradeSection = document.getElementById('upgrade-cta-section');
+  if (upgradeSection) upgradeSection.style.display = isPro ? 'none' : 'block';
+
+  // Email capture card state
+  setupEmailCapture(isPro);
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── WAITLIST MODAL ──
+function openWaitlist() {
+  document.getElementById('waitlistModal').classList.add('open');
+}
+
+function closeWaitlist() {
+  document.getElementById('waitlistModal').classList.remove('open');
+  document.getElementById('modal-form-content').style.display = 'block';
+  document.getElementById('modal-success-content').style.display = 'none';
+  document.getElementById('waitlist-email').value = '';
+}
+
+async function submitWaitlist() {
+  const email = document.getElementById('waitlist-email').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('waitlist-email').focus();
+    return;
+  }
+
+  const btn = document.querySelector('.modal-submit');
+  btn.disabled = true;
+  try {
+    await fetch('/api/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+  } catch {}
+  btn.disabled = false;
+
+  document.getElementById('modal-form-content').style.display = 'none';
+  document.getElementById('modal-success-content').style.display = 'block';
+}
+
+// ── EMAIL REPORT CAPTURE ──
+const EC_KEY = 'cm_report_email';
+let lastReportData = null;
+let exitIntentShown = false;
+
+function maskEmail(e) {
+  const at = e.indexOf('@');
+  if (at < 1) return e;
+  return e[0] + '***' + e.slice(at);
+}
+
+function showEcState(state) {
+  document.getElementById('ec-form-state').style.display = state === 'form' ? 'block' : 'none';
+  document.getElementById('ec-success-state').style.display = state === 'success' ? 'block' : 'none';
+  document.getElementById('ec-sent-state').style.display = state === 'sent' ? 'block' : 'none';
+}
+
+function setupEmailCapture(isPro) {
+  const desc = document.getElementById('ec-desc');
+  if (desc) {
+    desc.textContent = isPro
+      ? 'Get a copy of this audit in your inbox — handy for forwarding to your team or a client.'
+      : 'ConvertMind stores nothing — when you close this tab, this audit is gone. Get a copy in your inbox. Occasionally receive high-value website conversion tips.';
+  }
+  const proBlock = document.getElementById('ec-success-pro');
+  if (proBlock) proBlock.style.display = isPro ? 'none' : 'block';
+
+  const saved = localStorage.getItem(EC_KEY) || '';
+  if (saved) {
+    document.getElementById('ec-sent-email').textContent = maskEmail(saved);
+    showEcState('sent');
+  } else {
+    showEcState('form');
+  }
+}
+
+function focusEmailCapture() {
+  const el = document.getElementById('email-capture');
+  if (!el) return;
+  el.scrollIntoView({ behavior: REDUCED_MOTION ? 'auto' : 'smooth', block: 'center' });
+  const input = document.getElementById('ec-email');
+  if (input && document.getElementById('ec-form-state').style.display !== 'none') {
+    setTimeout(() => input.focus(), REDUCED_MOTION ? 0 : 450);
+  }
+}
+
+// Only the free-tier slice ever leaves the browser — server renders just this.
+function buildEmailPayload(email) {
+  const d = lastReportData || {};
+  return {
+    email,
+    url: lastUrl,
+    scores: d.scores || {},
+    topIssue: (d.issues && d.issues[0]) || null,
+    insight: (d.psychologyInsights && d.psychologyInsights[0]) || null,
+    action: (d.actionPlan && d.actionPlan[0]) || null,
+    counts: {
+      insights: (d.psychologyInsights || []).length,
+      actions: (d.actionPlan || []).length
+    }
+  };
+}
+
+async function sendReportEmail(source) {
+  let email;
+  if (source === 'resend') {
+    email = localStorage.getItem(EC_KEY) || '';
+  } else {
+    const inputEl = document.getElementById(source === 'exit' ? 'ec-exit-email' : 'ec-email');
+    email = (inputEl.value || '').trim().toLowerCase();
+  }
+  const errEl = document.getElementById(source === 'exit' ? 'ec-exit-error' : 'ec-error');
+  if (errEl) errEl.style.display = 'none';
+
+  if (!email || !email.includes('@') || email.length > 254) {
+    if (errEl) { errEl.textContent = 'Please enter a valid email address.'; errEl.style.display = 'block'; }
+    return;
+  }
+  if (!lastReportData) {
+    if (errEl) { errEl.textContent = 'Run a scan first, then email yourself the report.'; errEl.style.display = 'block'; }
+    return;
+  }
+
+  const btn = document.getElementById(source === 'exit' ? 'ec-exit-btn' : 'ec-btn');
+  if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = 'Sending…'; }
+
+  try {
+    const res = await fetch('/api/email-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildEmailPayload(email))
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Send failed');
+    }
+
+    localStorage.setItem(EC_KEY, email);
+    if (source === 'exit') {
+      document.getElementById('exit-form-content').style.display = 'none';
+      document.getElementById('exit-success-content').style.display = 'block';
+      document.getElementById('ec-sent-email').textContent = maskEmail(email);
+      showEcState('sent');
+    } else {
+      showEcState('success');
+    }
+  } catch (err) {
+    // The inline error slot lives in the form state — make sure it's visible
+    if (source === 'resend') showEcState('form');
+    if (errEl) {
+      errEl.textContent = 'Couldn’t send right now — please try again in a moment.';
+      errEl.style.display = 'block';
+    }
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || 'Send my report →'; }
+  }
+}
+
+function closeExitModal() {
+  document.getElementById('exitModal').classList.remove('open');
+  document.getElementById('exit-form-content').style.display = 'block';
+  document.getElementById('exit-success-content').style.display = 'none';
+}
+
+// Exit intent: desktop only, report page only, fires once, never after a capture
+document.addEventListener('mouseout', e => {
+  if (exitIntentShown) return;
+  if (e.relatedTarget) return;                  // still inside the page
+  if (e.clientY > 10) return;                   // not heading for the tab bar
+  if (window.innerWidth < 700) return;          // desktop only
+  if (document.getElementById('results-state').style.display !== 'block') return;
+  if (localStorage.getItem(EC_KEY)) return;     // already captured
+  if (document.querySelector('.modal-overlay.open')) return; // another modal is up
+  exitIntentShown = true;
+  document.getElementById('exitModal').classList.add('open');
+});
+
+// ── KEYBOARD ──
+document.getElementById('pro-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') activateProKey();
+  if (e.key === 'Escape') closeProKeyModal();
+});
+
+document.getElementById('url-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startScan();
+});
+
+document.getElementById('proKeyModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('proKeyModal')) closeProKeyModal();
+});
+
+document.getElementById('waitlistModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('waitlistModal')) closeWaitlist();
+});
+
+document.getElementById('exitModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('exitModal')) closeExitModal();
+});
+
+document.getElementById('ec-exit-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendReportEmail('exit');
+});
+
+document.getElementById('ec-email').addEventListener('keydown', e => {
+  if (e.key === 'Enter') sendReportEmail();
+});
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (document.getElementById('proKeyModal').classList.contains('open')) closeProKeyModal();
+    if (document.getElementById('waitlistModal').classList.contains('open')) closeWaitlist();
+    if (document.getElementById('exitModal').classList.contains('open')) closeExitModal();
+  }
+});
+
+/* ═══════════════════════════════════════════════════════════
+   PRESENTATION LAYER — visual effects only.
+   Nothing below touches scan flow, gating, storage, or APIs.
+   ═══════════════════════════════════════════════════════════ */
+
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ── Final CTA → focus the hero scan box ──
+function focusScanBox() {
+  window.scrollTo({ top: 0, behavior: REDUCED_MOTION ? 'auto' : 'smooth' });
+  setTimeout(() => document.getElementById('url-input').focus(), REDUCED_MOTION ? 0 : 600);
+}
+
+// ── Nav scroll state ──
+const siteNav = document.getElementById('site-nav');
+window.addEventListener('scroll', () => {
+  siteNav.classList.toggle('scrolled', window.scrollY > 24);
+}, { passive: true });
+
+// ── Reveal-on-scroll ──
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(en => {
+    if (en.isIntersecting) {
+      en.target.classList.add('in');
+      revealObserver.unobserve(en.target);
+    }
+  });
+}, { threshold: 0.18, rootMargin: '0px 0px -8% 0px' });
+document.querySelectorAll('.rv').forEach(el => revealObserver.observe(el));
+
+// ── Leak stages: light up + drive the drip line ──
+const leakStages = document.querySelectorAll('.leak-stage');
+const stageObserver = new IntersectionObserver(entries => {
+  entries.forEach(en => { if (en.isIntersecting) en.target.classList.add('in'); });
+}, { threshold: 0.35 });
+leakStages.forEach(el => stageObserver.observe(el));
+
+const leakLineFill = document.getElementById('leak-line-fill');
+const leakTrack = document.querySelector('.leak-track');
+if (leakLineFill && leakTrack) {
+  window.addEventListener('scroll', () => {
+    const r = leakTrack.getBoundingClientRect();
+    const vh = window.innerHeight;
+    const progress = Math.min(1, Math.max(0, (vh * 0.6 - r.top) / (r.height)));
+    leakLineFill.style.height = (progress * 100).toFixed(1) + '%';
+  }, { passive: true });
+}
+
+// ── Demo report dials animate when visible ──
+const demoReport = document.getElementById('demo-report');
+if (demoReport) {
+  const CIRC = 219.9; // 2πr, r=35
+  const dialObserver = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      demoReport.querySelectorAll('.dial-val').forEach(c => {
+        const score = Number(c.dataset.score) || 0;
+        c.style.strokeDashoffset = (CIRC * (1 - score / 100)).toFixed(1);
+      });
+      dialObserver.unobserve(en.target);
+    });
+  }, { threshold: 0.4 });
+  dialObserver.observe(demoReport);
+}
+
+// ── Marquee: duplicate track for seamless loop ──
+const marqueeTrack = document.getElementById('marquee-track');
+if (marqueeTrack) marqueeTrack.innerHTML += marqueeTrack.innerHTML;
+
+// ── Hero funnel canvas: visitors pour in, most leak out red, few convert green ──
+(function funnel() {
+  if (REDUCED_MOTION) return;
+  const canvas = document.getElementById('funnel-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H, dpr;
+
+  function resize() {
+    dpr = Math.min(2, window.devicePixelRatio || 1);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  resize();
+  window.addEventListener('resize', resize, { passive: true });
+
+  // funnel geometry (relative)
+  const topW = 0.72, midW = 0.34, neckW = 0.10;
+  const yTop = 0.12, yMid = 0.52, yNeck = 0.86;
+
+  const parts = [];
+  function spawn() {
+    parts.push({
+      x: 0.5 + (Math.random() - 0.5) * topW * 0.9,
+      y: yTop - 0.06,
+      vx: 0, vy: 0.0016 + Math.random() * 0.0012,
+      state: 'fall', // fall | leakL | leakR | convert
+      fate: Math.random(), // decided when reaching mid
+      r: 1.6 + Math.random() * 1.4,
+      life: 1
+    });
+  }
+
+  function wallX(y, side) {
+    // linear interpolation of funnel wall half-width by y
+    let hw;
+    if (y < yMid) hw = topW / 2 + (midW / 2 - topW / 2) * ((y - yTop) / (yMid - yTop));
+    else hw = midW / 2 + (neckW / 2 - midW / 2) * ((y - yMid) / (yNeck - yMid));
+    return 0.5 + side * hw;
+  }
+
+  // Only animate while the funnel is actually on screen — saves CPU/battery
+  // during the rest of the scroll and when the analyzer view is open.
+  let running = false;
+  const visObserver = new IntersectionObserver(entries => {
+    const visible = entries[0].isIntersecting;
+    if (visible && !running) { running = true; requestAnimationFrame(draw); }
+    else if (!visible) { running = false; }
+  }, { threshold: 0.05 });
+  visObserver.observe(canvas);
+
+  function draw() {
+    if (!running) return;
+    ctx.clearRect(0, 0, W, H);
+
+    // funnel walls
+    ctx.strokeStyle = 'rgba(255,255,255,0.13)';
+    ctx.lineWidth = 1.5;
+    [-1, 1].forEach(s => {
+      ctx.beginPath();
+      ctx.moveTo(wallX(yTop, s) * W, yTop * H);
+      ctx.lineTo(wallX(yMid, s) * W, yMid * H);
+      ctx.lineTo(wallX(yNeck, s) * W, yNeck * H);
+      ctx.stroke();
+    });
+    // leak holes (gaps drawn as red dashes)
+    ctx.strokeStyle = 'rgba(248,113,113,0.55)';
+    ctx.setLineDash([3, 5]);
+    ctx.beginPath();
+    ctx.moveTo(wallX(yMid - 0.08, -1) * W, (yMid - 0.08) * H);
+    ctx.lineTo(wallX(yMid + 0.02, -1) * W, (yMid + 0.02) * H);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(wallX(yMid - 0.18, 1) * W, (yMid - 0.18) * H);
+    ctx.lineTo(wallX(yMid - 0.08, 1) * W, (yMid - 0.08) * H);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    if (Math.random() < 0.20 && parts.length < 90) spawn();
+
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.y += p.vy; p.x += p.vx;
+
+      if (p.state === 'fall') {
+        // funnel squeeze
+        const lim = Math.abs(wallX(p.y, 1) - 0.5) - 0.012;
+        if (p.x > 0.5 + lim) p.x = 0.5 + lim;
+        if (p.x < 0.5 - lim) p.x = 0.5 - lim;
+        // decide fate at leak band
+        if (p.y > yMid - 0.16 && p.y < yMid + 0.02) {
+          if (p.fate < 0.38 && p.x < 0.5) { p.state = 'leakL'; p.vx = -0.003 - Math.random() * 0.002; p.vy *= 0.7; }
+          else if (p.fate > 0.62 && p.x > 0.5) { p.state = 'leakR'; p.vx = 0.003 + Math.random() * 0.002; p.vy *= 0.7; }
+        }
+        if (p.y > yNeck) { p.state = 'convert'; p.vy *= 0.8; }
+      } else if (p.state !== 'convert') {
+        p.vy += 0.00012; // leaked particles fall away
+        p.life -= 0.012;
+      } else {
+        p.life -= 0.02;
+      }
+
+      if (p.life <= 0 || p.y > 1.05 || p.x < -0.05 || p.x > 1.05) { parts.splice(i, 1); continue; }
+
+      let color;
+      if (p.state === 'convert') color = `rgba(74,222,128,${0.75 * p.life})`;
+      else if (p.state === 'fall') color = `rgba(192,132,252,${0.55 * p.life})`;
+      else color = `rgba(248,113,113,${0.7 * p.life})`;
+
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, p.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(draw);
+  }
+})();
+</script>
+</body>
+</html>

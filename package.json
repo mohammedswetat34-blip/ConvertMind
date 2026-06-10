@@ -1,0 +1,8 @@
+{
+  "name": "convertmind",
+  "version": "1.0.0",
+  "description": "AI-powered website audit and conversion optimization platform",
+  "engines": {
+    "node": ">=18"
+  }
+}

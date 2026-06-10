@@ -1,0 +1,17 @@
+# Environment variables — never commit real API keys
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+package-lock.json
+
+# Claude Code session files
+.claude/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
