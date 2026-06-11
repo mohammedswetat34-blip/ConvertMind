@@ -301,9 +301,15 @@ module.exports = async function handler(req, res) {
   const html = buildEmailHtml({ domain, scores, topIssue, insight, action, counts });
   const subject = `Your ConvertMind audit: ${domain} scored ${scores.overall}/100`;
 
-  // No Resend key (local dev) — log and succeed so the UI flow is testable
+  // Missing Resend key: in PRODUCTION this must be an error the user sees —
+  // never a fake success (live bug: UI said "sent", nothing was ever sent).
+  // The log-and-succeed convenience exists for local dev only.
   if (!process.env.RESEND_API_KEY) {
-    console.log('Report email requested (no RESEND_API_KEY):', sanitizedEmail, domain);
+    if (process.env.VERCEL) {
+      console.error('RESEND_API_KEY missing in production — report email NOT sent');
+      return res.status(503).json({ error: 'Email sending is temporarily unavailable. Please try again later.' });
+    }
+    console.log('Report email requested (no RESEND_API_KEY, local dev):', sanitizedEmail, domain);
     return res.status(200).json({ success: true });
   }
 
@@ -317,7 +323,9 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'ConvertMind <noreply@convertmind.ai>',
+        // EMAIL_FROM lets the sender match whatever domain is verified in
+        // Resend without a redeploy (unverified domains are rejected with 403).
+        from: process.env.EMAIL_FROM || 'ConvertMind <noreply@convertmind.ai>',
         to: sanitizedEmail,
         subject,
         html,

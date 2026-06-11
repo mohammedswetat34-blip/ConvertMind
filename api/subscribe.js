@@ -88,7 +88,7 @@ module.exports = async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'ConvertMind <noreply@convertmind.ai>',
+          from: process.env.EMAIL_FROM || 'ConvertMind <noreply@convertmind.ai>',
           to: sanitizedEmail,
           subject: "You're on the ConvertMind list! 🚀",
           html: `
@@ -118,9 +118,14 @@ module.exports = async function handler(req, res) {
       console.error('Resend waitlist email error:', emailErr.message);
       return res.status(502).json({ error: 'Could not complete signup. Please try again.' });
     }
+  } else if (process.env.VERCEL) {
+    // Missing key in production: the email IS the signup record, so a silent
+    // no-op would lose the lead while telling them "you're on the list".
+    console.error('RESEND_API_KEY missing in production — waitlist signup NOT recorded');
+    return res.status(503).json({ error: 'Signups are temporarily unavailable. Please try again later.' });
   } else {
-    // No Resend key (local dev) — just log the signup
-    console.log('Waitlist signup:', sanitizedEmail);
+    // Local dev — just log the signup
+    console.log('Waitlist signup (local dev):', sanitizedEmail);
   }
 
   return res.status(200).json({ success: true });

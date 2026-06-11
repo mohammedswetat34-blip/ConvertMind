@@ -80,5 +80,23 @@ function makeRes() {
   console.log('OTHER RECIPIENT (200 expected):', res.code, res.code === 200 ? 'PASS' : 'FAIL');
   if (res.code !== 200) failures++;
 
+  // PRODUCTION + missing RESEND_API_KEY must be a 503, never a fake success
+  // (live bug 2026-06-11: UI said "sent" while no email was ever sent)
+  delete process.env.RESEND_API_KEY;
+  process.env.VERCEL = '1';
+  res = makeRes();
+  await handler({ ...mockReq, headers: { 'x-real-ip': '11.0.0.1' }, body: { ...mockReq.body, email: 'prod-test@example.com' } }, res);
+  const prodOk = res.code === 503;
+  console.log('PROD MISSING KEY (503 expected):', res.code, prodOk ? 'PASS' : 'FAIL');
+  if (!prodOk) failures++;
+
+  // Local dev (no VERCEL) keeps the log-and-succeed convenience
+  delete process.env.VERCEL;
+  res = makeRes();
+  await handler({ ...mockReq, headers: { 'x-real-ip': '11.0.0.2' }, body: { ...mockReq.body, email: 'dev-test@example.com' } }, res);
+  const devOk = res.code === 200;
+  console.log('DEV MISSING KEY (200 expected):', res.code, devOk ? 'PASS' : 'FAIL');
+  if (!devOk) failures++;
+
   process.exit(failures === 0 ? 0 : 1);
 })().catch((e) => { console.error('HARNESS CRASH:', e); process.exit(1); });
