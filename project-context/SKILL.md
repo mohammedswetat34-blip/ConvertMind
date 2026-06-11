@@ -11,7 +11,7 @@ ConvertMind is a single-page SaaS that audits any website's conversion potential
 
 - **No framework, no build step.** Plain HTML/CSS/JS in one file (`index.html`), served statically by Vercel (`outputDirectory: "."`).
 - **No database, no user accounts, no auth, no sessions.** All "state" is `localStorage` on the client.
-- **Backend = 3 stateless serverless functions** in `api/` (auto-routed by Vercel): `analyze.js`, `config.js`, `subscribe.js`.
+- **Backend = 5 stateless serverless functions** in `api/` (auto-routed by Vercel): `analyze.js`, `config.js`, `subscribe.js`, `email-report.js`, `verify-key.js`.
 - **Monetization is a shared-password gate**, not a real auth system (deliberate early-stage choice — see [pricing-and-pro.md](references/pricing-and-pro.md)).
 - **Model:** `claude-haiku-4-5-20251001`, called via native Node `https` (no SDK), `max_tokens: 3000`.
 
@@ -20,9 +20,11 @@ ConvertMind is a single-page SaaS that audits any website's conversion potential
 | Path | Role |
 |------|------|
 | `index.html` | Entire frontend: markup, CSS, and all JS (~1,400 lines) |
-| `api/analyze.js` | Core endpoint — fetch site, call Claude, return report + tier |
-| `api/config.js` | Returns Stripe URLs from env vars at runtime |
-| `api/subscribe.js` | Waitlist email capture (optional Resend send) |
+| `api/analyze.js` | Core endpoint — fetch site, call Claude (forced tool-use), validate, cache, tier-redact |
+| `api/config.js` | Returns Stripe URLs from env vars at runtime (CDN-cached) |
+| `api/subscribe.js` | Waitlist email capture (Resend send; failure → 502, never false success) |
+| `api/email-report.js` | Emails the free-tier report slice (per-recipient daily cap) |
+| `api/verify-key.js` | Validates a Pro key before the frontend stores it (constant-time compare) |
 | `vercel.json` | Static output dir + security headers |
 | `package.json` | Metadata only — no runtime dependencies |
 | `.env.example` | Documents all environment variables |
@@ -52,5 +54,7 @@ ConvertMind is a single-page SaaS that audits any website's conversion potential
 - **Pro content gate is real and server-side**: `analyze.js` → `prepareTierView()` redacts insights #2+ and action items #2+ from the payload for free requests. Pro is verified by comparing `proKey` to `PRO_PASSWORD`.
 - **Rate limiting and caching are per-Lambda-instance** (in-memory `Map`s), not distributed. Reset on cold start; best-effort only.
 - **Stripe URLs are runtime-loaded** from `/api/config`; in production an unset/unreachable config makes buy buttons fall back to a `mailto:hello@convertmind.ai` (never a silent no-op). On localhost they log a console warning instead.
+- **CORS fails closed**: all four functions default `ALLOWED_ORIGIN` to `https://convertmind.ai` when the env var is unset. For local API dev set `ALLOWED_ORIGIN=*` explicitly.
+- **Claude output is structured**: `analyze.js` forces a `submit_audit` tool call (schema-enforced report); `extractJSON` is fallback only. One fast-failure retry; timeouts never retry (60s `maxDuration` budget).
 - **Pro fulfillment is manual**: Stripe Payment Link → operator emails the shared key. Payment Links should redirect to `/welcome.html` (key-activation instructions) — set in the Stripe dashboard, see `.env.example`.
 - **Report emails** (`/api/email-report`) send only the free-tier slice; see [apis.md](references/apis.md).

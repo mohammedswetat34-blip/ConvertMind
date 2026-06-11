@@ -1,4 +1,5 @@
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
+// CORS fails CLOSED — see api/config.js for rationale.
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://convertmind.ai';
 const SITE_URL = process.env.SITE_URL || 'https://convertmind.ai';
 
 // ── RATE LIMITING ─────────────────────────────────────────────────────────────
@@ -16,6 +17,28 @@ function checkRateLimit(ip) {
   if (rateLimitMap.size > 10_000) {
     for (const [k, v] of rateLimitMap) {
       if (v.every((t) => now - t >= RATE_WINDOW_MS)) rateLimitMap.delete(k);
+    }
+  }
+  return true;
+}
+
+// ── PER-RECIPIENT CAP ─────────────────────────────────────────────────────────
+// Stops the endpoint being used to mail-bomb a victim address (which would
+// also poison our sender reputation). Independent of the per-IP limit:
+// distributed IPs still can't flood one inbox.
+const recipientMap = new Map();
+const RECIPIENT_WINDOW_MS = 24 * 60 * 60 * 1000;
+const RECIPIENT_MAX       = 3; // report emails per recipient per day
+
+function checkRecipientLimit(email) {
+  const now  = Date.now();
+  const prev = (recipientMap.get(email) || []).filter((t) => now - t < RECIPIENT_WINDOW_MS);
+  if (prev.length >= RECIPIENT_MAX) return false;
+  prev.push(now);
+  recipientMap.set(email, prev);
+  if (recipientMap.size > 10_000) {
+    for (const [k, v] of recipientMap) {
+      if (v.every((t) => now - t >= RECIPIENT_WINDOW_MS)) recipientMap.delete(k);
     }
   }
   return true;
@@ -225,6 +248,10 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ error: 'Valid email required' });
   }
   const sanitizedEmail = email.trim().toLowerCase().slice(0, 254);
+
+  if (!checkRecipientLimit(sanitizedEmail)) {
+    return res.status(429).json({ error: 'This address has already received the maximum number of reports today.' });
+  }
 
   // URL → domain (subject line + header)
   let domain;

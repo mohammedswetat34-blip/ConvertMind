@@ -1,4 +1,5 @@
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
+// CORS fails CLOSED — see api/config.js for rationale.
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://convertmind.ai';
 
 // ── RATE LIMITING ─────────────────────────────────────────────────────────────
 // Slightly higher ceiling than /api/analyze (email is cheaper than an AI call),
@@ -75,10 +76,12 @@ module.exports = async function handler(req, res) {
 
   const sanitizedEmail = email.trim().toLowerCase().slice(0, 254);
 
-  // If Resend API key is configured, send a confirmation email
+  // If Resend API is configured, the confirmation email IS the signup record
+  // (nothing else stores the address) — so a failed send must NOT report
+  // success to the user.
   if (process.env.RESEND_API_KEY) {
     try {
-      await fetch('https://api.resend.com/emails', {
+      const resendRes = await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
@@ -106,12 +109,17 @@ module.exports = async function handler(req, res) {
           `,
         }),
       });
+      if (!resendRes.ok) {
+        const errText = await resendRes.text().catch(() => '');
+        console.error('Resend waitlist email error:', resendRes.status, errText.slice(0, 300));
+        return res.status(502).json({ error: 'Could not complete signup. Please try again.' });
+      }
     } catch (emailErr) {
-      // Email failure is non-fatal — log and continue
-      console.error('Resend email error:', emailErr.message);
+      console.error('Resend waitlist email error:', emailErr.message);
+      return res.status(502).json({ error: 'Could not complete signup. Please try again.' });
     }
   } else {
-    // No Resend key — just log the signup
+    // No Resend key (local dev) — just log the signup
     console.log('Waitlist signup:', sanitizedEmail);
   }
 

@@ -1603,7 +1603,7 @@ footer {
     <p>Your key was sent after purchase. Check your email or contact hello@convertmind.ai if you can't find it.</p>
     <div class="pro-key-error" id="pro-key-error"></div>
     <input type="text" class="pro-key-input" id="pro-key-input" placeholder="Paste your Pro key here" autocomplete="off" spellcheck="false">
-    <button class="modal-submit" onclick="activateProKey()">Activate Pro</button>
+    <button class="modal-submit" id="pro-key-submit" onclick="activateProKey()">Activate Pro</button>
     <button class="modal-close" onclick="closeProKeyModal()">Cancel</button>
   </div>
 </div>
@@ -1615,6 +1615,7 @@ footer {
       <h3>Get Agency Updates</h3>
       <p>Be first to know when Agency features launch — competitor analysis, white-label reports, and bulk scanning for teams.</p>
       <input type="email" id="waitlist-email" placeholder="your@email.com">
+      <p class="ec-error" id="waitlist-error" style="text-align:left;margin:0 0 10px"></p>
       <button class="modal-submit" onclick="submitWaitlist()">Get Early Access</button>
       <button class="modal-close" onclick="closeWaitlist()">No thanks</button>
     </div>
@@ -1734,19 +1735,51 @@ function closeProKeyModal() {
   document.getElementById('proKeyModal').classList.remove('open');
 }
 
-function activateProKey() {
+async function activateProKey() {
   const key = document.getElementById('pro-key-input').value.trim();
   const errEl = document.getElementById('pro-key-error');
+  const btn = document.getElementById('pro-key-submit');
+  errEl.style.display = 'none';
   if (!key) {
     errEl.textContent = 'Please enter your Pro key.';
     errEl.style.display = 'block';
     return;
   }
-  setProKey(key);
-  closeProKeyModal();
-  updateNavProStatus();
-  if (lastUrl) { showLoading(); runAnalysis(lastUrl); }
+
+  // The key is only stored after the SERVER confirms it — a random string
+  // must never light up "Pro active" or bypass the scan limit.
+  btn.disabled = true;
+  btn.textContent = 'Checking…';
+  try {
+    const res = await fetch('/api/verify-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ proKey: key })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.valid) {
+      setProKey(key);
+      closeProKeyModal();
+      updateNavProStatus();
+      if (lastUrl) { showLoading(); runAnalysis(lastUrl); }
+    } else if (res.status === 429) {
+      errEl.textContent = 'Too many attempts — please wait a bit and try again.';
+      errEl.style.display = 'block';
+    } else {
+      errEl.textContent = 'That key isn’t valid. Check the email we sent after purchase, or contact hello@convertmind.ai.';
+      errEl.style.display = 'block';
+    }
+  } catch {
+    errEl.textContent = 'Couldn’t verify the key right now — please try again in a moment.';
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Activate Pro';
+  }
 }
+
+// Set when the server rejects a stored Pro key; surfaced once in the report.
+let proKeyRejected = false;
 
 // ── SCAN FLOW ──
 function startScan() {
@@ -1866,6 +1899,14 @@ async function runAnalysis(url) {
     const data = await res.json();
     if (!data || !data.scores) throw new Error('Invalid response from server.');
 
+    // Stored key no longer accepted by the server (rotated/invalid) —
+    // stop claiming Pro and tell the user in the report's upgrade block.
+    if (data.tier === 'free' && getProKey()) {
+      setProKey('');
+      updateNavProStatus();
+      proKeyRejected = true;
+    }
+
     lastReportData = data;
     incrementScanCount();
     document.getElementById('scan-btn').disabled = false;
@@ -1962,14 +2003,18 @@ function renderResults(url, data) {
   issuesList.innerHTML = '';
   (data.issues || []).forEach(issue => {
     const icons = { critical: '🔴', warning: '🟡', info: '🔵' };
+    // Whitelist enum-like fields before they touch innerHTML — server
+    // normalizes these too, but the client must not trust any payload.
+    const sev = ['critical', 'warning', 'info'].includes(issue.severity) ? issue.severity : 'info';
+    const impact = ['high', 'medium', 'low'].includes(issue.impact) ? issue.impact : 'low';
     const card = document.createElement('div');
-    card.className = `issue-card ${issue.severity || 'info'}`;
+    card.className = `issue-card ${sev}`;
     card.innerHTML = `
-      <div class="issue-icon">${icons[issue.severity] || '🔵'}</div>
+      <div class="issue-icon">${icons[sev]}</div>
       <div class="issue-body">
         <div class="issue-title">${escHtml(issue.title)}</div>
         <div class="issue-desc">${escHtml(issue.description)}</div>
-        <span class="issue-impact ${issue.impact || 'low'}">${issue.impact || 'low'} impact</span>
+        <span class="issue-impact ${impact}">${impact} impact</span>
       </div>
     `;
     issuesList.appendChild(card);
@@ -2007,7 +2052,8 @@ function renderResults(url, data) {
   const planList = document.getElementById('plan-list');
   planList.innerHTML = '';
   (data.actionPlan || []).forEach((item, idx) => {
-    const effortClass = { low: 'effort-low', medium: 'effort-med', high: 'effort-high' }[item.effort] || 'effort-low';
+    const effort = ['low', 'medium', 'high'].includes(item.effort) ? item.effort : 'low';
+    const effortClass = { low: 'effort-low', medium: 'effort-med', high: 'effort-high' }[effort];
     const card = document.createElement('div');
     if (!isPro && idx > 0) {
       card.className = 'plan-item';
@@ -2033,8 +2079,8 @@ function renderResults(url, data) {
           <div class="plan-title">${escHtml(item.title)}</div>
           <div class="plan-desc">${escHtml(item.description)}</div>
           <div class="plan-meta">
-            <span class="plan-tag ${effortClass}">${item.effort || 'low'} effort</span>
-            <span class="plan-tag impact">+${item.conversionLift || '?'} conversion</span>
+            <span class="plan-tag ${effortClass}">${effort} effort</span>
+            <span class="plan-tag impact">+${escHtml(item.conversionLift || '?')} conversion</span>
           </div>
         </div>
       `;
@@ -2048,6 +2094,13 @@ function renderResults(url, data) {
   // Show/hide upgrade CTA based on tier
   const upgradeSection = document.getElementById('upgrade-cta-section');
   if (upgradeSection) upgradeSection.style.display = isPro ? 'none' : 'block';
+
+  // If the server just rejected a stored key, say so where the user will look
+  if (!isPro && proKeyRejected) {
+    proKeyRejected = false;
+    const headline = document.getElementById('upgrade-cta-headline');
+    if (headline) headline.textContent = 'Your Pro key is no longer valid — it may have been rotated. Contact hello@convertmind.ai.';
+  }
 
   // Email capture card state
   setupEmailCapture(isPro);
@@ -2071,21 +2124,34 @@ function closeWaitlist() {
 
 async function submitWaitlist() {
   const email = document.getElementById('waitlist-email').value.trim();
+  const errEl = document.getElementById('waitlist-error');
+  if (errEl) errEl.style.display = 'none';
   if (!email || !email.includes('@')) {
     document.getElementById('waitlist-email').focus();
     return;
   }
 
-  const btn = document.querySelector('.modal-submit');
+  const btn = document.querySelector('#modal-form-content .modal-submit');
   btn.disabled = true;
+  let ok = false;
   try {
-    await fetch('/api/subscribe', {
+    const res = await fetch('/api/subscribe', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
+    ok = res.ok;
   } catch {}
   btn.disabled = false;
+
+  // Never show "you're on the list" when the signup didn't go through.
+  if (!ok) {
+    if (errEl) {
+      errEl.textContent = 'Couldn’t sign you up right now — please try again in a moment.';
+      errEl.style.display = 'block';
+    }
+    return;
+  }
 
   document.getElementById('modal-form-content').style.display = 'none';
   document.getElementById('modal-success-content').style.display = 'block';

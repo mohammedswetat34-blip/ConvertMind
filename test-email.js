@@ -38,11 +38,47 @@ const mockReq = {
   }
 };
 
-const mockRes = {
-  headers: {},
-  setHeader(k, v) { this.headers[k] = v; },
-  status(c) { this.code = c; return this; },
-  json(o) { console.log('RESPONSE:', this.code, JSON.stringify(o)); }
-};
+function makeRes() {
+  return {
+    headers: {}, code: null, body: null,
+    setHeader(k, v) { this.headers[k] = v; },
+    status(c) { this.code = c; return this; },
+    json(o) { this.body = o; return this; },
+  };
+}
 
-handler(mockReq, mockRes);
+(async () => {
+  let failures = 0;
+
+  // Send 1 — normal flow, writes email-preview.html
+  let res = makeRes();
+  await handler(mockReq, res);
+  console.log('RESPONSE:', res.code, JSON.stringify(res.body));
+  if (res.code !== 200) failures++;
+
+  // XSS: the rendered email HTML must not contain a live <script> tag
+  const html = require('fs').readFileSync('email-preview.html', 'utf8');
+  const xssOk = !html.includes('<script>') && html.includes('&lt;script&gt;');
+  console.log('EMAIL XSS ESCAPED:', xssOk ? 'PASS' : 'FAIL');
+  if (!xssOk) failures++;
+
+  // Sends 2-3 to the same recipient succeed; send 4 must hit the
+  // per-recipient daily cap (3/day) regardless of IP.
+  const codes = [];
+  for (let i = 0; i < 3; i++) {
+    res = makeRes();
+    await handler({ ...mockReq, headers: { 'x-real-ip': `10.0.0.${i}` } }, res);
+    codes.push(res.code);
+  }
+  const capOk = codes[0] === 200 && codes[1] === 200 && codes[2] === 429;
+  console.log('RECIPIENT CAP (200,200,429 expected):', codes.join(','), capOk ? 'PASS' : 'FAIL');
+  if (!capOk) failures++;
+
+  // A different recipient is unaffected
+  res = makeRes();
+  await handler({ ...mockReq, body: { ...mockReq.body, email: 'other@example.com' } }, res);
+  console.log('OTHER RECIPIENT (200 expected):', res.code, res.code === 200 ? 'PASS' : 'FAIL');
+  if (res.code !== 200) failures++;
+
+  process.exit(failures === 0 ? 0 : 1);
+})().catch((e) => { console.error('HARNESS CRASH:', e); process.exit(1); });
