@@ -1,6 +1,6 @@
 // CORS fails CLOSED — see api/config.js for rationale.
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://convertmind.ai';
-const SITE_URL = process.env.SITE_URL || 'https://convertmind.ai';
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://www.convertmind.xyz';
+const SITE_URL = process.env.SITE_URL || 'https://www.convertmind.xyz';
 
 // ── RATE LIMITING ─────────────────────────────────────────────────────────────
 // Tighter than /api/subscribe — each request sends a full report email.
@@ -212,7 +212,7 @@ function buildEmailHtml(data) {
 
     <!-- FOOTER -->
     <p style="margin:20px 0 0;font-size:11px;color:#aaa;line-height:1.7;text-align:center;">
-      You received this because you requested your audit report at <a href="${SITE_URL}" style="color:#7c5cfc;text-decoration:none;">convertmind.ai</a>.<br>
+      You received this because you requested your audit report at <a href="${SITE_URL}" style="color:#7c5cfc;text-decoration:none;">convertmind.xyz</a>.<br>
       Made changes? Re-scan free anytime. Occasionally we'll send a high-value conversion tip — unsubscribe with one click.<br>
       © ConvertMind
     </p>
@@ -325,7 +325,7 @@ module.exports = async function handler(req, res) {
       body: JSON.stringify({
         // EMAIL_FROM lets the sender match whatever domain is verified in
         // Resend without a redeploy (unverified domains are rejected with 403).
-        from: process.env.EMAIL_FROM || 'ConvertMind <noreply@convertmind.ai>',
+        from: process.env.EMAIL_FROM || 'ConvertMind <noreply@convertmind.xyz>',
         to: sanitizedEmail,
         subject,
         html,

@@ -33,7 +33,7 @@ $green  = New-Object System.Drawing.SolidBrush([System.Drawing.ColorTranslator]:
 
 # Small mono-ish site tag, top left
 $fontTag = New-Object System.Drawing.Font('Consolas', 17)
-$g.DrawString('convertmind.ai', $fontTag, $muted, 92, 78)
+$g.DrawString('convertmind.xyz', $fontTag, $muted, 92, 78)
 
 # Wordmark
 $fontBig = New-Object System.Drawing.Font('Segoe UI', 86, [System.Drawing.FontStyle]::Bold)

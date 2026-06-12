@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
 // CORS fails CLOSED — see api/config.js for rationale.
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://convertmind.ai';
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://www.convertmind.xyz';
 
 // ── RATE LIMITING ─────────────────────────────────────────────────────────────
 // Bounds online guessing of the shared key (20 guesses/hr/IP). The key is a

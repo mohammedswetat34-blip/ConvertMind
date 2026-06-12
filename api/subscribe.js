@@ -1,5 +1,5 @@
 // CORS fails CLOSED — see api/config.js for rationale.
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://convertmind.ai';
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://www.convertmind.xyz';
 
 // ── RATE LIMITING ─────────────────────────────────────────────────────────────
 // Slightly higher ceiling than /api/analyze (email is cheaper than an AI call),
@@ -88,7 +88,7 @@ module.exports = async function handler(req, res) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: process.env.EMAIL_FROM || 'ConvertMind <noreply@convertmind.ai>',
+          from: process.env.EMAIL_FROM || 'ConvertMind <noreply@convertmind.xyz>',
           to: sanitizedEmail,
           subject: "You're on the ConvertMind list! 🚀",
           html: `
@@ -99,12 +99,12 @@ module.exports = async function handler(req, res) {
               </p>
               <p style="color: #555; line-height: 1.6; margin-bottom: 16px;">
                 In the meantime, you can run <strong>3 free scans per month</strong> at
-                <a href="https://convertmind.ai" style="color: #7c5cfc;">convertmind.ai</a>
+                <a href="https://www.convertmind.xyz" style="color: #7c5cfc;">convertmind.xyz</a>
                 — or upgrade to Pro for unlimited scans at $20.99/mo.
               </p>
-              <a href="https://convertmind.ai" style="display:inline-block;margin-top:8px;background:#7c5cfc;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Start Scanning →</a>
+              <a href="https://www.convertmind.xyz" style="display:inline-block;margin-top:8px;background:#7c5cfc;color:white;text-decoration:none;padding:12px 28px;border-radius:8px;font-weight:700;font-size:14px;">Start Scanning →</a>
               <hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;">
-              <p style="font-size: 12px; color: #999;">ConvertMind · You received this because you signed up at convertmind.ai</p>
+              <p style="font-size: 12px; color: #999;">ConvertMind · You received this because you signed up at convertmind.xyz</p>
             </div>
           `,
         }),

@@ -53,8 +53,8 @@ ConvertMind is a single-page SaaS that audits any website's conversion potential
 - **Scan limit is client-side only** (`localStorage` key `cm_scans`). Trivially bypassed by clearing storage. Not a real limit — it's a nudge. Server-side cost guards (hourly + daily IP limits, per-instance budget, 1h per-URL cache) bound the damage.
 - **Pro content gate is real and server-side**: `analyze.js` → `prepareTierView()` redacts insights #2+ and action items #2+ from the payload for free requests. Pro is verified by comparing `proKey` to `PRO_PASSWORD`.
 - **Rate limiting and caching are per-Lambda-instance** (in-memory `Map`s), not distributed. Reset on cold start; best-effort only.
-- **Stripe URLs are runtime-loaded** from `/api/config`; in production an unset/unreachable config makes buy buttons fall back to a `mailto:hello@convertmind.ai` (never a silent no-op). On localhost they log a console warning instead.
-- **CORS fails closed**: all four functions default `ALLOWED_ORIGIN` to `https://convertmind.ai` when the env var is unset. For local API dev set `ALLOWED_ORIGIN=*` explicitly.
+- **Stripe URLs are runtime-loaded** from `/api/config`; in production an unset/unreachable config makes buy buttons fall back to a `mailto:hello@convertmind.xyz` (never a silent no-op). On localhost they log a console warning instead.
+- **CORS fails closed**: all four functions default `ALLOWED_ORIGIN` to `https://convertmind.xyz` when the env var is unset. For local API dev set `ALLOWED_ORIGIN=*` explicitly.
 - **Claude output is structured**: `analyze.js` forces a `submit_audit` tool call (schema-enforced report); `extractJSON` is fallback only. One fast-failure retry; timeouts never retry (60s `maxDuration` budget).
 - **Pro fulfillment is manual**: Stripe Payment Link → operator emails the shared key. Payment Links should redirect to `/welcome.html` (key-activation instructions) — set in the Stripe dashboard, see `.env.example`.
 - **Report emails** (`/api/email-report`) send only the free-tier slice; see [apis.md](references/apis.md).

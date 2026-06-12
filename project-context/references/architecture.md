@@ -2,7 +2,7 @@
 
 ## Hosting & deployment
 
-- **Platform:** Vercel. Production URL `https://convert-mind.vercel.app` (custom domain `convertmind.ai` planned, not yet live).
+- **Platform:** Vercel. Production URL `https://www.convertmind.xyz` (apex 308s to www; legacy `convert-mind.vercel.app` also serves).
 - **`vercel.json`** sets `outputDirectory: "."` so the repo root is served as static files. `index.html` is the entry point.
 - **No build step.** Nothing is compiled or bundled. Editing `index.html` and redeploying is the whole loop.
 - **`package.json` has zero dependencies** — metadata only (`engines.node: ">=18"`). An earlier `@anthropic-ai/sdk` dependency was removed; the backend uses the native `https` module instead.

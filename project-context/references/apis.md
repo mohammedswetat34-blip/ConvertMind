@@ -1,6 +1,6 @@
 # API Endpoints
 
-Five stateless serverless functions in `api/`. All share the same CORS pattern (`ALLOWED_ORIGIN` env var, OPTIONS preflight → 204; **fails closed** — defaults to `https://convertmind.ai` when unset, set `*` explicitly for local dev) and the same `getClientIp` helper (prefers unspoofable `x-real-ip`). All have `maxDuration: 60` via `vercel.json`.
+Five stateless serverless functions in `api/`. All share the same CORS pattern (`ALLOWED_ORIGIN` env var, OPTIONS preflight → 204; **fails closed** — defaults to `https://www.convertmind.xyz` when unset, set `*` explicitly for local dev) and the same `getClientIp` helper (prefers unspoofable `x-real-ip`). All have `maxDuration: 60` via `vercel.json`.
 
 ---
 
@@ -120,7 +120,7 @@ Emails the free-tier slice of a just-completed audit to the user ("Keep this rep
 
 **Response 200** — `{ "success": true }`.
 
-**Env** — `SITE_URL` (defaults to `https://convertmind.ai`) controls CTA/footer links.
+**Env** — `SITE_URL` (defaults to `https://www.convertmind.xyz`) controls CTA/footer links.
 
 **Dev harness** — `node test-email.js` (repo root) runs the handler with mock data and writes the rendered email to `email-preview.html` for visual checks.
 

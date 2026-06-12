@@ -8,8 +8,8 @@
 <meta property="og:title" content="ConvertMind — AI Website Audit">
 <meta property="og:description" content="Scan your website. Discover what's killing conversions. Get a psychology-backed improvement plan.">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://convertmind.ai">
-<meta property="og:image" content="https://convertmind.ai/og-image.png">
+<meta property="og:url" content="https://www.convertmind.xyz">
+<meta property="og:image" content="https://www.convertmind.xyz/og-image.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ConvertMind — AI Website Audit">
 <meta name="twitter:description" content="Scan your website. Discover what's killing conversions. Get a psychology-backed improvement plan.">
@@ -1407,7 +1407,7 @@ footer {
       <div class="rv">
         <div class="kicker" style="justify-content:center">// 05 — plug the leak</div>
         <h2>Cheaper than the leak.</h2>
-        <p class="pricing-sub" style="margin-top:14px">One recovered customer typically pays for a year of Pro.<br><span style="font-size:13px">Questions before buying? <a href="mailto:hello@convertmind.ai" style="color:var(--accent2)">hello@convertmind.ai</a> — a human answers.</span></p>
+        <p class="pricing-sub" style="margin-top:14px">One recovered customer typically pays for a year of Pro.<br><span style="font-size:13px">Questions before buying? <a href="mailto:hello@convertmind.xyz" style="color:var(--accent2)">hello@convertmind.xyz</a> — a human answers.</span></p>
       </div>
       <div class="pricing-grid">
         <div class="pricing-card rv">
@@ -1472,6 +1472,7 @@ footer {
       You've used all 3 free scans this month — your next leak is still out there.
       Pro is unlimited, $20.99/mo, cancel anytime.
       <button class="limit-upgrade-btn" onclick="goToStripe(STRIPE_PRO_URL)">Go unlimited →</button>
+      <button class="modal-close" style="display:block;margin:10px auto 0" onclick="resetToHome()">← Back to home</button>
     </div>
 
     <!-- LOADING -->
@@ -1590,7 +1591,7 @@ footer {
       <div class="footer-copy">© 2026 ConvertMind. Built with Claude AI.</div>
       <div class="footer-links">
         <a href="#" onclick="openWaitlist();return false;">Join Waitlist</a>
-        <a href="mailto:hello@convertmind.ai">Contact</a>
+        <a href="mailto:hello@convertmind.xyz">Contact</a>
       </div>
     </div>
   </div>
@@ -1600,7 +1601,7 @@ footer {
 <div class="modal-overlay pro-key-modal" id="proKeyModal">
   <div class="modal">
     <h3>Enter Pro Access Key</h3>
-    <p>Your key was sent after purchase. Check your email or contact hello@convertmind.ai if you can't find it.</p>
+    <p>Your key was sent after purchase. Check your email or contact hello@convertmind.xyz if you can't find it.</p>
     <div class="pro-key-error" id="pro-key-error"></div>
     <input type="text" class="pro-key-input" id="pro-key-input" placeholder="Paste your Pro key here" autocomplete="off" spellcheck="false">
     <button class="modal-submit" id="pro-key-submit" onclick="activateProKey()">Activate Pro</button>
@@ -1614,7 +1615,7 @@ footer {
     <div id="modal-form-content">
       <h3>Get Agency Updates</h3>
       <p>Be first to know when Agency features launch — competitor analysis, white-label reports, and bulk scanning for teams.</p>
-      <input type="email" id="waitlist-email" placeholder="your@email.com">
+      <input type="email" id="waitlist-email" placeholder="your@email.com" maxlength="254">
       <p class="ec-error" id="waitlist-error" style="text-align:left;margin:0 0 10px"></p>
       <button class="modal-submit" onclick="submitWaitlist()">Get Early Access</button>
       <button class="modal-close" onclick="closeWaitlist()">No thanks</button>
@@ -1655,28 +1656,70 @@ footer {
 let STRIPE_PRO_URL    = null;
 let STRIPE_AGENCY_URL = null;
 
+let stripeConfigLoaded = false;
 fetch('/api/config')
   .then(r => r.json())
   .then(cfg => {
     STRIPE_PRO_URL    = cfg.proUrl    || null;
     STRIPE_AGENCY_URL = cfg.agencyUrl || null;
   })
-  .catch(() => {}); // Non-fatal — buttons silently inactive if config unreachable
+  .catch(() => {}) // Non-fatal — buy buttons fall back to a human contact
+  .finally(() => { stripeConfigLoaded = true; });
+
+// ── LIGHTWEIGHT TELEMETRY ──
+// Funnel events + JS errors → /api/track → structured Vercel log lines.
+// No PII, no URLs, no report content. Always fails silent; never blocks UX.
+function track(event, meta) {
+  try {
+    const body = JSON.stringify({ event, meta: meta ? String(meta).slice(0, 120) : undefined });
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon('/api/track', new Blob([body], { type: 'application/json' }));
+    } else {
+      fetch('/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body, keepalive: true }).catch(() => {});
+    }
+  } catch {}
+}
+window.addEventListener('error', e => track('js_error', e.message));
+window.addEventListener('unhandledrejection', e => track('js_error', (e.reason && e.reason.message) || 'unhandled rejection'));
 
 updateNavProStatus();
 
 function goToStripe(url) {
-  if (!url) {
-    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
-      console.warn('[ConvertMind] Stripe URL not configured. Set STRIPE_PRO_URL / STRIPE_AGENCY_URL in your environment variables.');
-      return;
-    }
-    // Checkout unavailable (config unreachable / env unset) — a buy click must
-    // never silently do nothing. Route the buyer to a human instead.
-    window.location.href = 'mailto:hello@convertmind.ai?subject=ConvertMind%20Pro%20access&body=Hi%20—%20I%20tried%20to%20buy%20Pro%20but%20checkout%20didn%27t%20open.';
+  if (url) {
+    track('pro_cta_clicked', 'stripe');
+    window.open(url, '_blank');
     return;
   }
-  window.open(url, '_blank');
+  if (!stripeConfigLoaded) {
+    // Clicked before /api/config resolved (first ~1s after load) — wait for
+    // it briefly instead of losing a buy click to a race. The delayed open
+    // navigates the current tab: popup blockers ignore non-gesture window.open.
+    track('pro_cta_clicked', 'waiting-config');
+    let waited = 0;
+    const poll = setInterval(() => {
+      waited += 300;
+      if (STRIPE_PRO_URL) {
+        clearInterval(poll);
+        window.location.href = STRIPE_PRO_URL;
+      } else if (stripeConfigLoaded || waited >= 2400) {
+        clearInterval(poll);
+        stripeFallback();
+      }
+    }, 300);
+    return;
+  }
+  stripeFallback();
+}
+
+function stripeFallback() {
+  // Checkout unavailable (config unreachable / env unset) — a buy click must
+  // never silently do nothing. Route the buyer to a human instead.
+  track('pro_cta_clicked', 'fallback');
+  if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+    console.warn('[ConvertMind] Stripe URL not configured. Set STRIPE_PRO_URL / STRIPE_AGENCY_URL in your environment variables.');
+    return;
+  }
+  window.location.href = 'mailto:hello@convertmind.xyz?subject=ConvertMind%20Pro%20access&body=Hi%20—%20I%20tried%20to%20buy%20Pro%20but%20checkout%20didn%27t%20open.';
 }
 
 // ── STATE ──
@@ -1700,6 +1743,33 @@ function incrementScanCount() {
     const monthKey = `${now.getFullYear()}-${now.getMonth()}`;
     data[monthKey] = (data[monthKey] || 0) + 1;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch {}
+}
+
+// ── SCORE HISTORY (retention loop) ──
+// Per-URL last overall score in localStorage. On a repeat scan the report
+// header shows the delta — fix → re-scan → watch the number move. No accounts,
+// no backend, and it makes Pro's unlimited re-scans tangibly worth paying for.
+const SCORE_HISTORY_KEY = 'cm_score_history';
+
+function scoreUrlKey(url) {
+  try {
+    const u = new URL(url);
+    return u.hostname.toLowerCase() + (u.pathname.replace(/\/+$/, '') || '/');
+  } catch { return url; }
+}
+
+function getScoreHistory() {
+  try { return JSON.parse(localStorage.getItem(SCORE_HISTORY_KEY) || '{}'); } catch { return {}; }
+}
+
+function saveScoreEntry(url, overall) {
+  try {
+    const h = getScoreHistory();
+    h[scoreUrlKey(url)] = { overall, ts: Date.now() };
+    const keys = Object.keys(h);
+    if (keys.length > 50) delete h[keys[0]];
+    localStorage.setItem(SCORE_HISTORY_KEY, JSON.stringify(h));
   } catch {}
 }
 
@@ -1750,6 +1820,7 @@ async function activateProKey() {
   // must never light up "Pro active" or bypass the scan limit.
   btn.disabled = true;
   btn.textContent = 'Checking…';
+  track('pro_key_attempted');
   try {
     const res = await fetch('/api/verify-key', {
       method: 'POST',
@@ -1758,6 +1829,7 @@ async function activateProKey() {
     });
     const data = await res.json().catch(() => ({}));
     if (res.ok && data.valid) {
+      track('pro_key_succeeded');
       setProKey(key);
       closeProKeyModal();
       updateNavProStatus();
@@ -1766,10 +1838,12 @@ async function activateProKey() {
       errEl.textContent = 'Too many attempts — please wait a bit and try again.';
       errEl.style.display = 'block';
     } else {
-      errEl.textContent = 'That key isn’t valid. Check the email we sent after purchase, or contact hello@convertmind.ai.';
+      track('pro_key_failed');
+      errEl.textContent = 'That key isn’t valid. Check the email we sent after purchase, or contact hello@convertmind.xyz.';
       errEl.style.display = 'block';
     }
   } catch {
+    track('pro_key_failed', 'network');
     errEl.textContent = 'Couldn’t verify the key right now — please try again in a moment.';
     errEl.style.display = 'block';
   } finally {
@@ -1799,11 +1873,13 @@ function startScan() {
   }
 
   if (!getProKey() && getScanCount() >= SCAN_LIMIT) {
+    track('scan_limit_hit');
     document.getElementById('limitBanner').style.display = 'block';
     showAnalyzerView();
     return; // scan limit reached — do not proceed
   }
 
+  track('scan_started');
   lastUrl = url;
   document.getElementById('scan-btn').disabled = true;
   document.getElementById('scan-btn').textContent = 'Scanning…';
@@ -1908,6 +1984,7 @@ async function runAnalysis(url) {
     }
 
     lastReportData = data;
+    track('scan_succeeded', data.cached ? 'cached' : 'fresh');
     // A cached repeat scan cost us no Claude call — don't charge it against
     // the free monthly limit. Keeps the "tweak → re-scan" loop free, which
     // is the main reason a free user comes back (retention).
@@ -1929,6 +2006,7 @@ async function runAnalysis(url) {
     const msg = err.name === 'AbortError'
       ? 'Analysis timed out. Please try again.'
       : (err.message || 'Analysis failed. Please try again.');
+    track('scan_failed', msg);
     showError(msg);
   }
 }
@@ -1959,11 +2037,27 @@ function renderResults(url, data) {
   // URL
   document.getElementById('results-url').textContent = url;
 
-  // Scan metadata (presentation only)
+  // Scan metadata + score movement vs. the last scan of this page
   const metaEl = document.getElementById('results-meta');
   if (metaEl) {
     metaEl.textContent = 'Scanned ' + new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
       + ' · 6 dimensions · psychology frameworks applied';
+    try {
+      const overallNow = Math.min(100, Math.max(0, Number(data.scores.overall) || 0));
+      const prev = getScoreHistory()[scoreUrlKey(url)];
+      // 2h threshold: the server cache lasts 1h, so anything older than this
+      // is a genuinely fresh comparison, not the same cached report.
+      if (prev && typeof prev.overall === 'number' && Date.now() - prev.ts > 2 * 3600 * 1000) {
+        const delta = overallNow - prev.overall;
+        const when = new Date(prev.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (delta !== 0) {
+          metaEl.textContent += ` · overall ${delta > 0 ? '▲ +' : '▼ '}${delta} since ${when}`;
+        }
+      } else if (!prev && !isPro) {
+        metaEl.textContent += ' · re-scan after fixes to track your score';
+      }
+      if (!data.cached) saveScoreEntry(url, overallNow);
+    } catch {}
   }
 
   // Summary
@@ -2102,7 +2196,7 @@ function renderResults(url, data) {
   if (!isPro && proKeyRejected) {
     proKeyRejected = false;
     const headline = document.getElementById('upgrade-cta-headline');
-    if (headline) headline.textContent = 'Your Pro key is no longer valid — it may have been rotated. Contact hello@convertmind.ai.';
+    if (headline) headline.textContent = 'Your Pro key is no longer valid — it may have been rotated. Contact hello@convertmind.xyz.';
   }
 
   // Email capture card state
@@ -2147,6 +2241,7 @@ async function submitWaitlist() {
   } catch {}
   btn.disabled = false;
 
+  track(ok ? 'waitlist_submitted' : 'waitlist_failed');
   // Never show "you're on the list" when the signup didn't go through.
   if (!ok) {
     if (errEl) {
@@ -2258,6 +2353,7 @@ async function sendReportEmail(source) {
     }
 
     localStorage.setItem(EC_KEY, email);
+    track('email_report_submitted', source || 'card');
     if (source === 'exit') {
       document.getElementById('exit-form-content').style.display = 'none';
       document.getElementById('exit-success-content').style.display = 'block';
@@ -2267,6 +2363,7 @@ async function sendReportEmail(source) {
       showEcState('success');
     }
   } catch (err) {
+    track('email_report_failed');
     // The inline error slot lives in the form state — make sure it's visible
     if (source === 'resend') showEcState('form');
     if (errEl) {

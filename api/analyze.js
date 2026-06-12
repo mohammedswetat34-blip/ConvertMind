@@ -5,7 +5,7 @@ const net   = require('net');
 // CORS fails CLOSED: if the env var is forgotten, only the production origin
 // may call this from a browser (same-origin frontend calls are unaffected).
 // Set ALLOWED_ORIGIN=* explicitly for local API development.
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://convertmind.ai';
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || 'https://www.convertmind.xyz';
 
 // ── RATE LIMITING ─────────────────────────────────────────────────────────────
 const rateLimitMap = new Map();
