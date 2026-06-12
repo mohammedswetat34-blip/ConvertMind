@@ -23,9 +23,10 @@ module.exports = function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Stripe URLs change rarely — let the CDN absorb the per-pageload hit
-  // (browsers 5 min, edge 1 h; env-var changes still propagate on redeploy).
-  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=3600');
+  // Stripe URLs change rarely — let the CDN absorb the per-pageload hit.
+  // TTL is kept short: when the founder sets STRIPE_PRO_URL, buy buttons
+  // must go live in minutes, not be held hostage by an hour of edge cache.
+  res.setHeader('Cache-Control', 'public, max-age=300, s-maxage=600');
 
   return res.status(200).json({
     proUrl:    process.env.STRIPE_PRO_URL    || null,

@@ -1908,7 +1908,10 @@ async function runAnalysis(url) {
     }
 
     lastReportData = data;
-    incrementScanCount();
+    // A cached repeat scan cost us no Claude call — don't charge it against
+    // the free monthly limit. Keeps the "tweak → re-scan" loop free, which
+    // is the main reason a free user comes back (retention).
+    if (!data.cached) incrementScanCount();
     document.getElementById('scan-btn').disabled = false;
     document.getElementById('scan-btn').textContent = 'Scan Now →';
     clearInterval(stepTimer);

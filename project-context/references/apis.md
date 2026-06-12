@@ -17,21 +17,21 @@ Core endpoint. Fetches a site, runs the Claude audit, returns the report.
 1. POST only (else 405); `ANTHROPIC_API_KEY` must be set (else 500).
 2. Rate limit: **10 requests / hour / IP** (in-memory Map). Exceed → 429.
 3. `url` required, string, ≤2048 chars; must parse as http/https (else 400).
-4. **Cache check**: cache key = protocol + lowercased host + **port** + path + sorted query with **known tracking params stripped** (`utm_*`, `gclid`, `fbclid`, `msclkid`, `ref`). Meaningful query params (`?page=2`, tenant IDs) get distinct entries — only tracking noise collapses. Hit within 1h → served from per-instance memory (no Claude cost; daily caps not charged). Cache holds the full **validated** report; tier view is applied per request.
-5. **Daily IP cap**: 30 uncached scans / rolling 24h / IP → 429 `"Daily scan limit reached…"`.
-6. **Instance budget**: 400 Claude calls / UTC day / instance → 503 `"The scanner is at capacity…"`.
-7. SSRF: `validateUrlSafety` rejects private/reserved IPs and DNS results → 400 `"URL is not allowed"`.
+4. **Cache check**: cache key = protocol + lowercased host + **port** + path + sorted query with **known tracking params stripped** (`utm_*`, `gclid`, `fbclid`, `msclkid`, `ref`). Meaningful query params (`?page=2`, tenant IDs) get distinct entries — only tracking noise collapses. Hit within 1h → served from per-instance memory (no Claude cost; daily caps not charged) and response carries **`cached: true`** so the frontend skips the free-tier counter (free re-scans = retention loop). Cache holds the full **validated** report; tier view is applied per request.
+5. **Daily IP cap**: 30 scan *attempts* / rolling 24h / IP → 429 `"Daily scan limit reached…"`. Counts attempts (incl. invalid URLs) so abusers burn their own quota.
+6. SSRF: `validateUrlSafety` rejects private/reserved IPs → 400 `"URL is not allowed"`. **DNS-resolution failures** (typo'd/dead domains) return a friendly 400 `"We couldn't find that website…"` instead — a conversion moment, not an attack.
+7. **Instance budget**: 400 Claude calls / UTC day / instance → 503 `"The scanner is at capacity…"`. Spent **only at the point of real cost** (after cache miss + SSRF pass), so blocked/invalid requests never drain it.
 
 **Processing**
-- `safeFetch` (12s abort covering **headers AND body read**, manual-redirect with per-hop SSRF re-check, redirect bodies cancelled) → body capped at **512 KB** (`readBodyCapped`) → strip HTML → 8,000 chars. Site content is wrapped in `<<<SITE_CONTENT_START/END>>>` markers and declared untrusted in the prompt (prompt-injection guard).
+- `safeFetch` (12s abort covering **headers AND body read**, manual-redirect with per-hop SSRF re-check, redirect bodies cancelled) → body capped at **512 KB** (`readBodyCapped`) → strip HTML → 8,000 chars. Site content is wrapped in `<<<SITE_CONTENT_START/END>>>` markers and declared untrusted in the prompt (prompt-injection guard). **Thin content** (<200 chars, e.g. a JS-rendered SPA) adds a note telling the model to score conservatively and say so, rather than hallucinate a confident audit.
 - Claude call: native `https`, `claude-haiku-4-5-20251001`, `max_tokens: 3000`, 25s timeout, **one retry** on fast transient failures (429/5xx/conn errors failing in <8s; timeouts never retry — 60s duration budget). Prompt demands verbatim-quote evidence in issues and a ready-to-use example in action item #1.
 - **Structured output**: forced tool-use (`submit_audit` tool, `tool_choice` pinned, `additionalProperties: false`, maxLength bounds). `extractJSON` text parsing remains as fallback only.
 - **Server-side validation** (`validateReport`): every report is normalized before caching/serving — strings length-clamped, enums whitelisted (invalid → safe default), scores clamped 0–100, unknown fields dropped. Invalid shape → **one semantic retry** (budget-guarded), then 500. Responses are **built field-by-field** (`prepareTierView`) — model output is never cloned, so unknown properties cannot reach any tier.
 - Cache the full result (only if the site fetch succeeded), then **`prepareTierView`**: stamps `tier`; for free requests **redacts** insights #2+ to `{ principle, locked: true }` and action items #2+ to `{ title, locked: true }`. Pro content never reaches free clients.
 
-**Response 200** — tier-shaped report object (see [analysis-flow.md](analysis-flow.md)) plus `"tier": "pro"|"free"`.
+**Response 200** — tier-shaped report object (see [analysis-flow.md](analysis-flow.md)) plus `"tier": "pro"|"free"` and, on a cache hit, `"cached": true`.
 
-**Errors** — 400 (bad/blocked URL), 405, 429 (hourly or daily limit), 503 (instance budget), 500 (`"Analysis failed"` on Claude error, `"Failed to parse AI response"` on parse failure).
+**Errors** — 400 (bad/blocked URL, or friendly DNS-not-found), 405, 429 (hourly or daily limit), 503 (instance budget), 500 (`"Analysis failed"` on Claude error, `"Failed to generate a valid report"` on validation failure).
 
 ---
 
@@ -58,7 +58,7 @@ Validates a Pro key without running an analysis — the frontend calls this befo
 
 **Request** — `{ "proKey": "<candidate>" }`
 
-**Guards** — POST only; rate limit **20 attempts / hour / IP** → 429 (bounds online guessing); key must be a string ≤200 chars (else `valid: false`).
+**Guards** — POST only; rate limit **20 attempts / hour / IP** → 429 (bounds online guessing); key must be a string ≤200 chars (else `valid: false`). Every failed attempt also incurs a fixed **250ms delay** (free for legit users, taxes distributed brute-forcing).
 
 **Behavior** — constant-time comparison against `PRO_PASSWORD` (sha256 digests + `crypto.timingSafeEqual`). Unset `PRO_PASSWORD` → always `valid: false`.
 

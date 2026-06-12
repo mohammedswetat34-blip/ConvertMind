@@ -51,7 +51,13 @@ function safeEqual(a, b) {
   return crypto.timingSafeEqual(ha, hb);
 }
 
-module.exports = function handler(req, res) {
+// Small fixed delay on every failed attempt: free for legitimate users (they
+// fail once, maybe twice), but taxes distributed brute-forcing 250ms/guess on
+// top of the rate limit.
+const FAIL_DELAY_MS = 250;
+const failDelay = () => new Promise((r) => setTimeout(r, FAIL_DELAY_MS));
+
+module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, corsHeaders());
     return res.end();
@@ -70,9 +76,11 @@ module.exports = function handler(req, res) {
 
   const { proKey } = req.body || {};
   if (!proKey || typeof proKey !== 'string' || proKey.length > 200) {
+    await failDelay();
     return res.status(200).json({ valid: false });
   }
 
   const valid = !!(process.env.PRO_PASSWORD && safeEqual(proKey, process.env.PRO_PASSWORD));
+  if (!valid) await failDelay();
   return res.status(200).json({ valid });
 };

@@ -7,8 +7,12 @@ process.env.PRO_PASSWORD = 'secret-pro-key';
 const dns = require('dns');
 const https = require('https');
 
-// 1. DNS always resolves to a public IP
-dns.promises.lookup = async () => [{ address: '93.184.216.34', family: 4 }];
+// 1. DNS resolves to a public IP, unless dnsMode flips it to a failure
+let dnsMode = 'ok';
+dns.promises.lookup = async () => {
+  if (dnsMode === 'fail') { const e = new Error('ENOTFOUND'); throw e; }
+  return [{ address: '93.184.216.34', family: 4 }];
+};
 
 // 2. Site fetch — 'html' returns a normal page; 'bigstream' streams 64KB
 //    chunks forever (verifies the body byte-cap stops reading).
@@ -168,6 +172,15 @@ function makeRes() {
   await handler(makeReq({ url: 'https://acme-store.example', proKey: 'WRONG' }), res);
   results.t4_wrong_key_free = res.body.tier === 'free' && !JSON.stringify(res.body).includes('PRO-ONLY');
 
+  // ── t4b: cache hit carries the `cached` flag (frontend skips the counter) ──
+  res = makeRes();
+  await handler(makeReq({ url: 'https://acme-store.example' }), res);
+  results.t4b_cache_flag_set = res.body.cached === true;
+  // a fresh (uncached) scan must NOT carry it
+  res = makeRes();
+  await handler(makeReq({ url: 'https://fresh-uncached.example' }, '7.7.7.7'), res);
+  results.t4b_fresh_no_cache_flag = res.body.cached === undefined && res.code === 200;
+
   // ── t7: tracking params + case + trailing slash collapse to one entry ──────
   callsBefore = claudeCalls;
   res = makeRes();
@@ -249,6 +262,17 @@ function makeRes() {
   // 512KB cap / 64KB chunks = 8 pulls (+1 in flight); >12 means cap failed
   results.t15_body_capped = res.code === 200 && bigstreamPulls <= 12;
   fetchMode = 'html';
+
+  // ── t16: DNS failure → friendly conversion message, NO budget spent ────────
+  // A dead/typo'd domain must not (a) leak "URL is not allowed" or (b) drain
+  // the daily instance budget, which is only for real Claude calls.
+  dnsMode = 'fail';
+  callsBefore = claudeCalls;
+  res = makeRes();
+  await handler(makeReq({ url: 'https://nonexistent-typo-domain.example' }, '6.6.6.6'), res);
+  results.t16_dns_friendly_message = res.code === 400 && /couldn.t find that website/i.test(res.body.error);
+  results.t16_dns_no_claude_call = claudeCalls === callsBefore;
+  dnsMode = 'ok';
 
   // ── t5/t6: hourly rate limit ────────────────────────────────────────────────
   let blockedAt = null;
