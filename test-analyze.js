@@ -30,8 +30,20 @@ global.fetch = async () => {
     });
     return new Response(stream, { status: 200 });
   }
+  if (fetchMode === 'thin') {
+    // JS-shell: almost no readable text after stripping → thinContent path
+    return new Response('<html><head><title>App</title></head><body><div id="root"></div></body></html>', { status: 200 });
+  }
+  // Default: a realistic, content-rich page (>200 chars stripped) so the
+  // thinContent path does NOT trigger for normal-page tests.
   return new Response(
-    '<html><head><title>Acme Store</title></head><body><h1>Welcome to Acme</h1><p>We sell things.</p></body></html>',
+    '<html><head><title>Acme Store — Premium Widgets</title></head><body>' +
+    '<h1>Welcome to Acme — the easiest way to buy widgets online</h1>' +
+    '<p>Acme has shipped over one million widgets to happy customers worldwide. ' +
+    'Our pricing is simple and transparent, every order ships free within 24 hours, ' +
+    'and a 30-day money-back guarantee backs every purchase. Trusted by teams at ' +
+    'leading companies, Acme makes buying widgets fast, safe, and genuinely delightful.</p>' +
+    '<a href="/buy">Start your order now</a></body></html>',
     { status: 200 }
   );
 };
@@ -46,7 +58,9 @@ let lastRequestBody = null;
 
 const fakeReport = {
   summary: 'Test summary.',
-  scores: { trust: 40, conversion: 55, psychology: 35, copy: 60, mobile: 70, overall: 50 },
+  // Model no longer emits `overall` (computed server-side). Includes confidence.
+  confidence: 85,
+  scores: { trust: 40, conversion: 55, psychology: 35, copy: 60, mobile: 70 },
   issues: [
     { title: 'Issue A', description: 'Desc A', severity: 'critical', impact: 'high' },
     { title: 'Issue B', description: 'Desc B', severity: 'warning', impact: 'medium' },
@@ -90,6 +104,7 @@ function claudePayload() {
   let report = fakeReport;
   if (mockMode === 'tool-malicious') report = maliciousReport;
   if (mockMode === 'tool-extra') report = extraFieldsReport;
+  if (mockMode === 'tool-oneissue') report = { ...fakeReport, issues: [fakeReport.issues[0]] };
   if (mockMode === 'invalid-once' && invalidOnceArmed) {
     invalidOnceArmed = false;
     report = { garbage: true };
@@ -273,6 +288,36 @@ function makeRes() {
   results.t16_dns_friendly_message = res.code === 400 && /couldn.t find that website/i.test(res.body.error);
   results.t16_dns_no_claude_call = claudeCalls === callsBefore;
   dnsMode = 'ok';
+
+  // ── t17: overall is COMPUTED from weighted dimensions, not model-emitted ───
+  // weights: conv .30, trust .25, copy .20, psych .15, mobile .10
+  // 55*.3 + 40*.25 + 60*.2 + 35*.15 + 70*.1 = 16.5+10+12+5.25+7 = 50.75 → 51
+  res = makeRes();
+  await handler(makeReq({ url: 'https://calib-overall.example' }, '10.0.0.1'), res);
+  results.t17_overall_computed = res.body.scores.overall === 51;
+  // model's free-emitted overall (was 50 in older shape) is ignored entirely
+  results.t17_five_dims_present = ['trust','conversion','psychology','copy','mobile']
+    .every((k) => typeof res.body.scores[k] === 'number');
+
+  // ── t18: confidence is surfaced on both tiers ──────────────────────────────
+  results.t18_confidence_present = res.body.confidence === 85;
+  res = makeRes();
+  await handler(makeReq({ url: 'https://calib-overall.example', proKey: 'secret-pro-key' }, '10.0.0.1'), res);
+  results.t18_confidence_pro = res.body.confidence === 85;
+
+  // ── t19: thin/JS-shell content → confidence clamped ≤35 server-side ────────
+  fetchMode = 'thin';
+  res = makeRes();
+  await handler(makeReq({ url: 'https://js-shell-app.example' }, '10.0.0.2'), res);
+  results.t19_thin_confidence_capped = res.code === 200 && res.body.confidence <= 35;
+  fetchMode = 'html';
+
+  // ── t20: issues quota relaxed — a 1-issue report is now valid (was minItems 4)
+  mockMode = 'tool-oneissue';
+  res = makeRes();
+  await handler(makeReq({ url: 'https://strong-site.example' }, '10.0.0.3'), res);
+  results.t20_single_issue_ok = res.code === 200 && res.body.issues.length === 1;
+  mockMode = 'tool';
 
   // ── t5/t6: hourly rate limit ────────────────────────────────────────────────
   let blockedAt = null;

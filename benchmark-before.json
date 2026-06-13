@@ -1,0 +1,42 @@
+[
+  {
+    "name": "Apple",
+    "url": "https://www.apple.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "Notion",
+    "url": "https://www.notion.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "Shopify",
+    "url": "https://www.shopify.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "Stripe",
+    "url": "https://stripe.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "Webflow",
+    "url": "https://webflow.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "HubSpot",
+    "url": "https://www.hubspot.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "Vercel",
+    "url": "https://vercel.com",
+    "error": "429: Too many requests. Please try again later."
+  },
+  {
+    "name": "Linear",
+    "url": "https://linear.app",
+    "error": "429: Too many requests. Please try again later."
+  }
+]

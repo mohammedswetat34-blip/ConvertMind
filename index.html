@@ -2058,6 +2058,11 @@ function renderResults(url, data) {
       }
       if (!data.cached) saveScoreEntry(url, overallNow);
     } catch {}
+    // Low confidence means we saw only partial/JS-rendered content — say so
+    // plainly rather than presenting a shaky score as authoritative.
+    if (typeof data.confidence === 'number' && data.confidence < 50) {
+      metaEl.textContent += ` · ⚠ limited analysis (confidence ${data.confidence}/100 — page may be JavaScript-rendered)`;
+    }
   }
 
   // Summary
