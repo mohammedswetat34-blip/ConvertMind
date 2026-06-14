@@ -31,19 +31,50 @@ global.fetch = async () => {
     return new Response(stream, { status: 200 });
   }
   if (fetchMode === 'thin') {
-    // JS-shell: almost no readable text after stripping → thinContent path
-    return new Response('<html><head><title>App</title></head><body><div id="root"></div></body></html>', { status: 200 });
+    // JS-shell: almost no readable text after stripping → low quality
+    return new Response('<html><head><title>App</title></head><body><div id="root"></div><script src="/bundle.js"></script></body></html>', { status: 200 });
   }
-  // Default: a realistic, content-rich page (>200 chars stripped) so the
-  // thinContent path does NOT trigger for normal-page tests.
+  if (fetchMode === 'noisy') {
+    // Shopify-like: real nav/footer/cookie junk + a product grid full of
+    // prices that must NOT become fake "pricing strategy" findings.
+    return new Response(
+      '<html><head><title>Noisy Store</title></head><body>' +
+      '<div class="cookie">We use cookies to improve your experience. Accept all cookies.</div>' +
+      '<nav><a href="/">Home</a><a href="/shop">Shop</a><a href="/sale">Sale</a></nav>' +
+      '<div class="grid">' +
+      Array.from({ length: 8 }, (_, i) => `<div class="card"><span>Item ${i}</span><span>$${100 + i}.00</span><a href="/p${i}">Buy now</a></div>`).join('') +
+      '</div>' +
+      '<nav class="footer"><a href="/">Home</a><a href="/shop">Shop</a><a href="/sale">Sale</a></nav>' +
+      '<footer>© 2026 Noisy Inc. Terms of Service. Privacy Policy. All rights reserved.</footer>' +
+      '</body></html>',
+      { status: 200 }
+    );
+  }
+  // Default: a realistic, content-rich, HIGH-quality page (title + meta +
+  // multiple headings + CTA + >800 chars body) so confidence is NOT capped.
   return new Response(
-    '<html><head><title>Acme Store — Premium Widgets</title></head><body>' +
+    '<html><head><title>Acme Store — Premium Widgets</title>' +
+    '<meta name="description" content="Acme sells premium widgets with fast free shipping and a 30-day money-back guarantee."></head><body>' +
+    '<nav><a href="/">Home</a><a href="/shop">Shop</a></nav>' +
     '<h1>Welcome to Acme — the easiest way to buy widgets online</h1>' +
+    '<h2>Why teams choose Acme</h2>' +
     '<p>Acme has shipped over one million widgets to happy customers worldwide. ' +
     'Our pricing is simple and transparent, every order ships free within 24 hours, ' +
-    'and a 30-day money-back guarantee backs every purchase. Trusted by teams at ' +
-    'leading companies, Acme makes buying widgets fast, safe, and genuinely delightful.</p>' +
-    '<a href="/buy">Start your order now</a></body></html>',
+    'and a 30-day money-back guarantee backs every purchase. Teams at leading ' +
+    'companies rely on Acme to keep their operations running without interruption.</p>' +
+    '<h2>How it works</h2>' +
+    '<p>Choose your widget, check out in seconds, and track delivery in real time. ' +
+    'Our support team answers every message within an hour, and onboarding is free ' +
+    'for every plan. Thousands of five-star reviews describe Acme as fast, safe, ' +
+    'and genuinely delightful to use day after day across every region we serve.</p>' +
+    '<h2>Built for growing teams</h2>' +
+    '<p>From solo founders to enterprise procurement departments, Acme scales with ' +
+    'your needs. Volume discounts apply automatically, invoices are generated for ' +
+    'every order, and our API lets you reorder programmatically whenever stock runs ' +
+    'low. Security reviews, signed agreements, and dedicated account managers are ' +
+    'available for larger customers who need them on day one of their contract.</p>' +
+    '<a class="btn" href="/buy">Start your order now</a>' +
+    '<footer>© 2026 Acme Inc. Terms of Service. Privacy Policy.</footer></body></html>',
     { status: 200 }
   );
 };
@@ -153,14 +184,70 @@ function makeRes() {
 (async () => {
   const results = {};
 
+  // ══ EXTRACTION UNIT TESTS (extractStructured, exported from the handler) ════
+  const { extractStructured } = handler;
+
+  const noisyHtml =
+    '<html><head><title>Shop Acme — Best Deals</title>' +
+    '<meta name="description" content="Acme sells premium widgets with fast free shipping."></head><body>' +
+    '<header><nav><a href="/">Home</a><a href="/shop">Shop</a><a href="/about">About</a></nav></header>' +
+    '<div class="cookie-banner">We use cookies to improve your experience. Accept all cookies. Cookie policy.</div>' +
+    '<h1>Premium widgets that ship in 24 hours</h1>' +
+    '<h2>Why customers choose Acme</h2>' +
+    '<p>Acme has shipped over one million widgets to delighted customers across the globe, ' +
+    'with transparent pricing and a thirty day money back guarantee on every order placed today.</p>' +
+    '<a class="btn-primary" href="/buy">Add to cart</a>' +
+    '<nav class="footer-nav"><a href="/">Home</a><a href="/shop">Shop</a><a href="/about">About</a></nav>' +
+    '<footer>© 2026 Acme Inc. Privacy Policy. Terms of Service. All rights reserved. Cookie policy.</footer>' +
+    '</body></html>';
+  const ex = extractStructured(noisyHtml, false);
+  const exJson = JSON.stringify(ex).toLowerCase();
+  results.x_title = ex.title === 'Shop Acme — Best Deals';
+  results.x_meta_preserved = /premium widgets with fast free shipping/.test(ex.metaDescription);
+  results.x_cta_preserved = ex.ctas.some((c) => /add to cart/i.test(c));
+  results.x_cookie_junk_removed = !exJson.includes('we use cookies') && !ex.bodyTextSample.toLowerCase().includes('accept all cookies');
+  results.x_footer_legal_removed = !ex.bodyTextSample.toLowerCase().includes('all rights reserved') && !ex.bodyTextSample.toLowerCase().includes('terms of service');
+  results.x_nav_deduped = ex.navItems.filter((n) => n.toLowerCase() === 'home').length === 1;
+
+  // thin JS page → low quality + JS warning
+  const exThin = extractStructured('<html><head><title>App</title></head><body><div id="root"></div><script src="/b.js"></script></body></html>', false);
+  results.x_thin_low_quality = exThin.extractedContentQuality === 'low';
+  results.x_thin_warns_js = exThin.extractionWarnings.some((w) => /javascript/i.test(w));
+
+  // duplicate spam → collapsed in body + duplicate warning
+  const dupHtml = '<html><head><title>Dup Co</title><meta name="description" content="x"></head><body>' +
+    '<h1>Welcome to our store today</h1><h2>Featured</h2>' +
+    Array(20).fill('<li>Shop all our products now</li>').join('') +
+    '<p>Some genuinely unique and sufficiently long body content describing the offering in detail for analysis purposes here.</p>' +
+    '<a class="btn" href="/x">Get started</a></body></html>';
+  const exDup = extractStructured(dupHtml, false);
+  results.x_dup_collapsed = (exDup.bodyTextSample.match(/Shop all our products now/gi) || []).length === 1;
+  results.x_dup_warns = exDup.extractionWarnings.some((w) => /duplicate/i.test(w));
+
+  // fetch failure → low quality, explicit warning
+  const exFail = extractStructured('', true);
+  results.x_fetchfail_low = exFail.extractedContentQuality === 'low' && exFail.extractionWarnings.length > 0;
+
+  // ══ INTEGRATION: noisy Shopify-like HTML must not yield confident fake findings
+  fetchMode = 'noisy';
+  let resN = makeRes();
+  await handler(makeReq({ url: 'https://noisy-store.example' }, '12.0.0.1'), resN);
+  results.x_noisy_quality_not_high = resN.body.extractionQuality === 'medium' || resN.body.extractionQuality === 'low';
+  results.x_noisy_confidence_capped = resN.body.confidence <= 65;
+  results.x_noisy_pricing_warning = (resN.body.extractionWarnings || []).some((w) => /price|carousel|product/i.test(w));
+  fetchMode = 'html';
+
   // ── t0/t1: request shape + free redaction ──────────────────────────────────
   let res = makeRes();
   await handler(makeReq({ url: 'https://acme-store.example' }), res);
   const sent = JSON.parse(lastRequestBody);
   results.t0_tool_choice_forced = sent.tool_choice && sent.tool_choice.name === 'submit_audit';
   results.t0_schema_locked = sent.tools[0].input_schema.additionalProperties === false;
-  results.t0_untrusted_markers = sent.messages[0].content.includes('<<<SITE_CONTENT_START>>>')
+  results.t0_untrusted_markers = sent.messages[0].content.includes('<<<EVIDENCE_START>>>')
     && sent.messages[0].content.includes('UNTRUSTED DATA');
+  // Structured evidence (not a flat blob) is what reaches the model
+  results.t0_structured_evidence = sent.messages[0].content.includes('"bodyTextSample"')
+    && sent.messages[0].content.includes('"extractedContentQuality"');
 
   const free = res.body;
   const freeJson = JSON.stringify(free);
