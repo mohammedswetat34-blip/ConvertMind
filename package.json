@@ -4,5 +4,9 @@
   "description": "AI-powered website audit and conversion optimization platform",
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@upstash/ratelimit": "^2.0.5",
+    "@upstash/redis": "^1.34.3"
   }
 }

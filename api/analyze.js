@@ -896,6 +896,69 @@ function extractJSON(raw) {
   return null;
 }
 
+// ── UPSTASH REDIS LIMITS ──────────────────────────────────────────────────────
+// Distributed limits survive cold starts and span every Lambda instance — the
+// in-memory Maps above only bound a single instance. Redis is the source of
+// truth in production; the in-memory functions remain a LOCAL-DEV fallback so
+// the app (and the test harness) still runs without Upstash configured.
+//
+// Packages are required lazily so a missing install (e.g. local/test) degrades
+// to the in-memory fallback instead of crashing the module at import.
+let Redis = null, Ratelimit = null;
+try {
+  ({ Redis } = require('@upstash/redis'));
+  ({ Ratelimit } = require('@upstash/ratelimit'));
+} catch { /* not installed — in-memory fallback (dev/test only) */ }
+
+const UPSTASH_CONFIGURED = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+const REDIS_READY = !!(Redis && Ratelimit && UPSTASH_CONFIGURED);
+const GLOBAL_CLAUDE_BUDGET = 400; // max real Anthropic calls / day / globally
+
+let redis = null, hourlyRL = null, dailyRL = null;
+if (REDIS_READY) {
+  redis = Redis.fromEnv();
+  // 10 requests / IP / hour
+  hourlyRL = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(10, '1 h'), prefix: 'cm:analyze:hourly', analytics: false });
+  // 30 UNCACHED scans / IP / 24h (consumed only after a cache miss)
+  dailyRL = new Ratelimit({ redis, limiter: Ratelimit.slidingWindow(30, '24 h'), prefix: 'cm:analyze:daily', analytics: false });
+}
+
+// Runtime Redis errors fail OPEN for the per-IP limiters (a transient Upstash
+// blip must not take the product down) — logged so the operator notices. The
+// hard bill ceiling is the global budget below.
+async function limitHourly(ip) {
+  if (hourlyRL) {
+    try { return (await hourlyRL.limit(`ip:${ip}`)).success; }
+    catch (e) { console.warn('[ratelimit] hourly Redis error, failing open:', e.message); return true; }
+  }
+  return checkRateLimit(ip);
+}
+async function limitDaily(ip) {
+  if (dailyRL) {
+    try { return (await dailyRL.limit(`ip:${ip}`)).success; }
+    catch (e) { console.warn('[ratelimit] daily Redis error, failing open:', e.message); return true; }
+  }
+  return checkDailyLimit(ip);
+}
+
+// Atomic global budget: INCR a per-UTC-day key, set its TTL on first write.
+// Called ONCE, immediately before a real Anthropic call — never for cached,
+// blocked, validation-failed, rate-limited, or debug requests.
+async function spendClaudeBudget() {
+  if (REDIS_READY) {
+    try {
+      const key = `budget:claude:${new Date().toISOString().slice(0, 10)}`;
+      const n = await redis.incr(key);
+      if (n === 1) await redis.expire(key, 25 * 60 * 60); // ~25h, covers the UTC day
+      return n <= GLOBAL_CLAUDE_BUDGET;
+    } catch (e) {
+      console.warn('[budget] Redis error, failing open:', e.message);
+      return true;
+    }
+  }
+  return checkAndSpendBudget();
+}
+
 // ── HANDLER ───────────────────────────────────────────────────────────────────
 module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') {
@@ -913,9 +976,18 @@ module.exports = async function handler(req, res) {
     return res.status(500).json({ error: 'API key not configured' });
   }
 
-  // Rate limiting — using x-real-ip (Vercel-controlled) to prevent spoofing
+  // FAIL CLOSED: in production the distributed limits are mandatory. If Upstash
+  // isn't configured there, refuse to run rather than serve unprotected (which
+  // would expose the Anthropic bill). Local dev (no VERCEL) uses the in-memory
+  // fallback so the app is still testable.
+  if (!REDIS_READY && process.env.VERCEL) {
+    console.error('Upstash Redis env vars missing in production — refusing to run unprotected.');
+    return res.status(503).json({ error: 'The scanner is temporarily unavailable. Please try again shortly.' });
+  }
+
+  // Hourly per-IP limit (10/h) — using x-real-ip (Vercel-controlled, unspoofable)
   const clientIp = getClientIp(req);
-  if (!checkRateLimit(clientIp)) {
+  if (!(await limitHourly(clientIp))) {
     return res.status(429).json({ error: 'Too many requests. Please try again later.' });
   }
 
@@ -952,8 +1024,9 @@ module.exports = async function handler(req, res) {
     return res.status(200).json(view);
   }
 
-  // Daily per-IP ceiling — counts attempts, so abusers burn their own quota
-  if (!checkDailyLimit(clientIp)) {
+  // Daily UNCACHED scan ceiling (30/IP/24h) — only reached on a cache miss,
+  // so honest re-scans of the same page (served from cache) never count.
+  if (!(await limitDaily(clientIp))) {
     return res.status(429).json({ error: 'Daily scan limit reached. Please come back tomorrow.' });
   }
 
@@ -967,12 +1040,6 @@ module.exports = async function handler(req, res) {
     }
     console.warn('SSRF attempt blocked:', url, '—', safety.reason);
     return res.status(400).json({ error: 'URL is not allowed' });
-  }
-
-  // Instance budget is spent HERE — at the point of real cost — never by
-  // blocked/invalid requests (otherwise 400-junk could drain the whole day).
-  if (!checkAndSpendBudget()) {
-    return res.status(503).json({ error: 'The scanner is at capacity right now. Please try again in a little while.' });
   }
 
   // Fetch target website using safeFetch (validates every redirect hop).
@@ -1060,6 +1127,13 @@ Rules:
 - psychologyInsights must point at specific elements of THIS site (its headline, its pricing, its CTAs) — not textbook definitions.
 - Score each dimension on its observed merits against the rubric — do not anchor every site to one safe band.
 - If content could not be fetched, say so plainly in the summary, set confidence at or below 20, and keep findings honest about that limitation.`;
+
+  // Spend the global Claude budget HERE — immediately before the only real
+  // Anthropic call. Cached hits, blocked/invalid URLs, rate-limited requests,
+  // and the debug short-circuit all returned earlier and never reach this line.
+  if (!(await spendClaudeBudget())) {
+    return res.status(503).json({ error: 'The scanner is at capacity right now. Please try again in a little while.' });
+  }
 
   let result = null;
   const tClaudeStart = Date.now();
